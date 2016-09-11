@@ -120,7 +120,7 @@ for line in headerScript.splitlines():
 					counter[params["partition_name"]] = 0
 				counter[params["partition_name"]] += 1
 
-				outputFile = os.path.join(outputDirectory, params["partition_name"] + ".img")
+				outputImgFile = os.path.join(outputDirectory, params["partition_name"] + ".img")
 				outputChunkLzoFile = os.path.join(outputDirectory, params["partition_name"] + str(counter[params["partition_name"]]) + ".lzo")
 				outputChunkImgFile = os.path.join(outputDirectory, params["partition_name"] + str(counter[params["partition_name"]]) + ".img")
 				# save .lzo
