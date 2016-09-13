@@ -2,23 +2,70 @@ import math
 import os
 import re
 import sys
+import string
+import binascii
 
+B  = 2**00
 KB = 2**10
 MB = 2**20
 GB = 2**30
 
-def size(s):
-	 if (s == 0):
-			 return '0B'
-	 size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
-	 i = int(math.floor(math.log(s, 1024)))
-	 p = math.pow(1024 ,i)
-	 s = round(s / p, 2)
-	 return '%s %s' % (s,size_name[i])
+def sizeInt(s):
+
+	value = int(s.strip(string.ascii_letters))
+	unit = s.strip(string.digits)
+	if not unit:
+		unit = 'B'
+	return value * globals()[unit]
+
+def sizeStr(s):
+	if (s == 0):
+		return '0B'
+	size_name = ('B', 'KB', 'MB', 'GB')
+	i = int(math.floor(math.log(s, 1024)))
+	p = math.pow(1024 ,i)
+	s = round(s / p, 2)
+	return '%s %s' % (s,size_name[i])
+
+def createDirectory(dir):
+	if not os.path.exists(dir): # if the directory does not exist
+		os.makedirs(dir) # make the directory
+	else: # the directory exists
+		#removes all files in a folder
+		for the_file in os.listdir(dir):
+			file_path = os.path.join(dir, the_file)
+			try:
+				if os.path.isfile(file_path):
+					os.unlink(file_path) # unlink (delete) the file
+			except Exception, e:
+				print e
+
+def splitFile(file, destdir, chunksize):
+	(name, ext) = os.path.splitext(os.path.basename(file))
+	chunks = []
+
+	# Just copy file if its size is less than chunk size
+	if os.path.getsize(file) < chunksize:
+		chunk = os.path.join(destdir, name + ext)
+		shutil.copyfile(file, chunk)
+		return [chunk]
+
+	# Split in chunks and copy
+	data = True
+	while data:
+		data = loadPart(file, len(chunks) * chunksize, chunksize)
+		if data:
+			chunk = os.path.join(destdir, ('%s.%04d%s' % (name, len(chunks), ext)))
+			chunks.append(chunk)
+			with open(chunk, 'wb') as f2:
+				f2.write(data)	
+
+	assert len(chunks) <= 9999			
+	return chunks
 
 # Append src file to dest file
 # bufsize - chunk size
-def appenFile(src, dest, bufsize = 16 * MB):
+def appendFile(src, dest, bufsize = 16 * MB):
 	with open(src, 'rb') as f1:
 		with open(dest, 'ab') as f2:
 			data = True
@@ -63,85 +110,112 @@ def loadPart(file, offset, size):
 		f.seek(offset)
 		return f.read(size)
 
+# Align file
+# file - input file to align
+# base - alignment base
+def alignFile(file, base = 0x1000):
+	result = base - os.path.getsize(file) % base
+	if result:
+		with open(file, 'ab') as f:
+			f.write('\xff' * result)
+
+# Swap bytes
+def swap32(x):
+    return (((x << 24) & 0xFF000000) |
+            ((x <<  8) & 0x00FF0000) |
+            ((x >>  8) & 0x0000FF00) |
+            ((x >> 24) & 0x000000FF))
+
+# Calculate crc32
+# file - filename of a file to calculate
+def crc32(file):
+    buf = open(file,'rb').read()
+    buf = (binascii.crc32(buf) & 0xFFFFFFFF)
+    return buf
+
 def parceArgs(string):
 	return re.findall('([^\s]+)', string)
 
 def processFilePartLoad(line):
 	args = parceArgs(line)
-	return {"cmd": args[0], "addr": args[1], "sourceFile": args[2], "offset": args[3], "size": args[4]}
+	return {'cmd': args[0], 'addr': args[1], 'sourceFile': args[2], 'offset': args[3], 'size': args[4]}
 	
 def processStoreSecureInfo(line):
 	args = parceArgs(line)
-	return {"cmd": args[0], "partition_name": args[1], "addr": args[2]}	
+	return {'cmd': args[0], 'partition_name': args[1], 'addr': args[2]}	
 	
 def processStoreNuttxConfig(line):
 	args = parceArgs(line)
-	return {"cmd": args[0], "partition_name": args[1], "addr": args[2]}
+	return {'cmd': args[0], 'partition_name': args[1], 'addr': args[2]}
 
 def processMmc(line):
 	args = parceArgs(line)
 
-	if args[1] == "erase.p":
+	if args[1] == 'create':
 		# mmc erase.p partition_name
-		return {"cmd": args[0], "action": args[1], "partition_name": args[2]}
+		return {'cmd': args[0], 'action': args[1], 'partition_name': args[2], 'size': args[3]}
 
-	elif args[1] == "write.p":
+	if args[1] == 'erase.p':
+		# mmc erase.p partition_name
+		return {'cmd': args[0], 'action': args[1], 'partition_name': args[2]}
+
+	elif args[1] == 'write.p':
 		# mmc write.p addr partition_name size [empty_skip:0-disable,1-enable]
-		res = {"cmd": args[0], "action": args[1], "addr": args[2], "partition_name": args[3], "size": args[4]}
+		res = {'cmd': args[0], 'action': args[1], 'addr': args[2], 'partition_name': args[3], 'size': args[4]}
 		try:
-			res["empty_skip"] = args[5]
+			res['empty_skip'] = args[5]
 		except IndexError:
-			res["empty_skip"] = 0
+			res['empty_skip'] = 0
 		return res
 
-	elif args[1] == "write.p.continue" or args[1] == "write.p.cont":
+	elif args[1] == 'write.p.continue' or args[1] == 'write.p.cont':
 		# mmc write.p(.continue|.cont) addr partition_name offset size [empty_skip:0-disable,1-enable]\n
-		res = {"cmd": args[0], "action": "write.p.continue", "addr": args[2], "partition_name": args[3], "offset": args[4], "size": args[5]}
+		res = {'cmd': args[0], 'action': 'write.p.continue', 'addr': args[2], 'partition_name': args[3], 'offset': args[4], 'size': args[5]}
 		try:
-			res["empty_skip"] = args[6]
+			res['empty_skip'] = args[6]
 		except IndexError:
-			res["empty_skip"] = 0
+			res['empty_skip'] = 0
 		return res
 
 
-	elif args[1] == "write.boot" or args[1] == "write":
+	elif args[1] == 'write.boot' or args[1] == 'write':
 		# mmc write[.boot] bootpart addr blk# size [empty_skip:0-disable,1-enable]
-		res = {"cmd": args[0], "action": args[1], "bootpart": args[2], "addr": args[3], "blk#": args[4], "size": args[5], "partition_name": "sboot"}
+		res = {'cmd': args[0], 'action': args[1], 'bootpart': args[2], 'addr': args[3], 'blk#': args[4], 'size': args[5], 'partition_name': 'sboot'}
 		try:
-			res["empty_skip"] = args[6]
+			res['empty_skip'] = args[6]
 		except IndexError:
-			res["empty_skip"] = 0
+			res['empty_skip'] = 0
 		return res
 
-	elif args[1] == "unlzo":
+	elif args[1] == 'unlzo':
 		# mmc unlzo[.continue|.cont] addr size partition_name [empty_skip:0-disable,1-enable]- decompress lzo file and write to mmc partition
-		res = {"cmd": args[0], "action": args[1], "addr": args[2], "size": args[3], "partition_name": args[4]}
+		res = {'cmd': args[0], 'action': args[1], 'addr': args[2], 'size': args[3], 'partition_name': args[4]}
 		try:
-			res["empty_skip"] = args[5]
+			res['empty_skip'] = args[5]
 		except IndexError:
-			res["empty_skip"] = 0
+			res['empty_skip'] = 0
 		return res
 
-	elif args[1] == "unlzo.continue" or args[1] == "unlzo.cont":
+	elif args[1] == 'unlzo.continue' or args[1] == 'unlzo.cont':
 		# mmc unlzo[.continue|.cont] addr size partition_name [empty_skip:0-disable,1-enable]- decompress lzo file and write to mmc partition
-		res = {"cmd": args[0], "action": "unlzo.continue", "addr": args[2], "size": args[3], "partition_name": args[4]}
+		res = {'cmd': args[0], 'action': 'unlzo.continue', 'addr': args[2], 'size': args[3], 'partition_name': args[4]}
 		try:
-			res["empty_skip"] = args[5]
+			res['empty_skip'] = args[5]
 		except IndexError:
-			res["empty_skip"] = 0
+			res['empty_skip'] = 0
 		return res
 
 	# else:
-	# 	print "Unknown mmc action"
+	# 	print 'Unknown mmc action'
 	# 	print args
 
 fileNameCounter = {}
 def generateFileName(outputDirectory, part, ext):
-	fileName = os.path.join(outputDirectory, part["partition_name"] + ext)
+	fileName = os.path.join(outputDirectory, part['partition_name'] + ext)
 	if os.path.exists(fileName):
 		try:
-			fileNameCounter[part["partition_name"]] += 1
+			fileNameCounter[part['partition_name']] += 1
 		except:
-			fileNameCounter[part["partition_name"]] = 1
-		fileName = os.path.join(outputDirectory, part["partition_name"] + str(fileNameCounter[part["partition_name"]]) + ext)
+			fileNameCounter[part['partition_name']] = 1
+		fileName = os.path.join(outputDirectory, part['partition_name'] + str(fileNameCounter[part['partition_name']]) + ext)
 	return fileName
