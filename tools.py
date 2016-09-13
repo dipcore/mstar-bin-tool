@@ -119,13 +119,6 @@ def alignFile(file, base = 0x1000):
 		with open(file, 'ab') as f:
 			f.write('\xff' * result)
 
-# Swap bytes
-def swap32(x):
-    return (((x << 24) & 0xFF000000) |
-            ((x <<  8) & 0x00FF0000) |
-            ((x >>  8) & 0x0000FF00) |
-            ((x >> 24) & 0x000000FF))
-
 # Calculate crc32
 # file - filename of a file to calculate
 def crc32(file):

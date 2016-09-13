@@ -1,5 +1,7 @@
 import os
 import sys
+import struct
+import shutil
 import tools
 from subprocess import call
 
@@ -18,8 +20,6 @@ if len(sys.argv) == 1:
 	print "Usage: pack-partition.py <partition name> <image file> [<lzo> <chunk size KB,MB,GB>]"
 	print "Example: pack-partition.py system unpacked/system.img lzo 150MB"
 	quit()
-
-print sys.argv
 
 if len(sys.argv) == 2:
 	print "Image file name cannot be empty"
@@ -61,17 +61,17 @@ chunks = tools.splitFile(imageFile, tmpDir, chunksize = chunkSize)
 '''
 	Header structure
 	-------
-	Multi-line script part which contains MBOOT commands
-	The script part ends with line: '% <- this is end of file symbol'
+	Multi-line script which contains MBOOT commands
+	The header script ends with line: '% <- this is end of file symbol'
 	Line separator is '\n'
-	The script part is filled by 0xFF to 16KB
-	Header size is 16KB
+	The header is filled by 0xFF to 16KB
+	The header size is always 16KB
 '''
 
 '''
 	Bin structure
 	-------
-	Basically it's merged aligned parts:
+	Basically it's merged parts:
 
 	[part 1]
 	[part 2]
@@ -142,27 +142,23 @@ with open(headerPart, 'wb') as header:
 
 print '[i] Generating footer ...'
 headerCRC = tools.crc32(headerPart)
-headerCRCSwapped = tools.swap32(headerCRC)
 binCRC = tools.crc32(binPart)
-binCRCSwapped = tools.swap32(binCRC)
 header16bytes = tools.loadPart(headerPart, 0, 16)
 with open(footerPart, 'wb') as footer:
 	print '[i]     Magic: %s' % MAGIC_FOOTER
 	footer.write(MAGIC_FOOTER)
-	print '[i]     Header CRC: 0x%x Swapped: 0x%x' % (headerCRC, headerCRCSwapped)
-	footer.write(hex(headerCRCSwapped))
-	print '[i]     Bin CRC: 0x%x Swapped: 0x%x' % (binCRC, binCRCSwapped)
-	footer.write(hex(binCRCSwapped))
+	print '[i]     Header CRC: 0x%x' % headerCRC
+	footer.write(struct.pack('L', headerCRC)) # struct.pack('L', data) <- returns byte swapped data
+	print '[i]     Bin CRC: 0x%x' % binCRC
+	footer.write(struct.pack('L', binCRC))
 	print '[i]     First 16 bytes of header: %s' % header16bytes
 	footer.write(header16bytes)
 
 print '[i] Merging header, bin, footer ...'
+open(outputFile, 'w').close()
 tools.appendFile(headerPart, outputFile)
 tools.appendFile(binPart, outputFile)
 tools.appendFile(footerPart, outputFile)
 
+shutil.rmtree(tmpDir)
 print '[i] Done'
-
-
-
-
