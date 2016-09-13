@@ -21,8 +21,8 @@ Usage: unpack.py <firmware> <output folder [default: ./unpacked/]>
 Usage: pack-partition.py <partition name> <image file> [<lzo> <chunk size KB,MB,GB>]
 Example: pack-partition.py system unpacked/system.img lzo 150MB
         <partition name> - Partition name. Important: The partition is not creating, 
-                            so make sure it's creating in your original mstar bin. 
-                            Check ./unpacked/~header_script file for 'mmc create <partition name>' line.
+                            so make sure it exists on your device. Check ./unpacked/~header_script 
+                            file for 'mmc create <partition name>' line.
         <image file> - Image or bin file to pack.
         <lzo> - Enable LZO packing. Non required param.
         <chunk size KB,MB,GB> - Chunk size. Can have KB,MB,GB suffix Ex: 150MB. 
