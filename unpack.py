@@ -132,8 +132,8 @@ for line in headerScript.splitlines():
 				print "[i]     %s append to %s" % (outputChunkImgFile, outputImgFile)
 				tools.appendFile(outputChunkImgFile, outputImgFile)
 				# delete chunk
-				#os.remove(outputChunkLzoFile)
-				#os.remove(outputChunkImgFile)
+				os.remove(outputChunkLzoFile)
+				os.remove(outputChunkImgFile)
 
 
 
