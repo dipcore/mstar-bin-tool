@@ -128,7 +128,12 @@ with open(headerPart, 'wb') as header:
 				# Why offset is 64000 but not c800000 ???
 				print '[!] UNSUPPORTED: mmc write.p.continue'
 				quit()
-			
+	
+
+#	header.write('setenv LetvUpgrade_complete 1\n')
+#	header.write('setenv ResetAfterUpgrade 1\n')
+#	header.write('setenv ForcePowerOn 1\n')
+#	header.write('saveenv\n')
 	header.write('% <- this is end of file symbol\n')
 	header.flush()
 

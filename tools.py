@@ -126,6 +126,12 @@ def crc32(file):
     buf = (binascii.crc32(buf) & 0xFFFFFFFF)
     return buf
 
+# unlzo
+# if NT then use ./bin/lzo.exe
+def unlzo(src, dest):
+	lzop = os.path.abspath('.') + '/bin/lzop.exe' if os.name == 'nt' else 'lzop'
+	os.system(lzop + ' -o {} -d {}'.format(dest, src))
+
 def parceArgs(string):
 	return re.findall('([^\s]+)', string)
 

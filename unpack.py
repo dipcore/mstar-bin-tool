@@ -2,7 +2,6 @@ import sys
 import os
 import re
 import shutil
-from subprocess import call
 
 import tools
 
@@ -110,7 +109,7 @@ for line in headerScript.splitlines():
 				tools.copyPart(inputFile, outputLzoFile, int(offset, 16), int(size, 16))
 				# unpack .lzo -> .img
 				print "[i]     Unpacking LZO (Please be patient) %s -> %s" % (outputLzoFile, outputImgFile)
-				call(["./bin/lzop", "-o",  outputImgFile, "-d", outputLzoFile])
+				tools.unlzo(outputLzoFile, outputImgFile)
 				# delete .lzo
 				os.remove(outputLzoFile)
 
@@ -127,7 +126,7 @@ for line in headerScript.splitlines():
 				tools.copyPart(inputFile, outputChunkLzoFile, int(offset, 16), int(size, 16))
 				# unpack chunk .lzo -> .img
 				print "[i]     Unpacking LZO (Please be patient) %s -> %s" % (outputChunkLzoFile, outputChunkImgFile)
-				call(["./bin/lzop", "-o",  outputChunkImgFile, "-x", outputChunkLzoFile])
+				tools.unlzo(outputChunkLzoFile, outputChunkImgFile)
 				# append the chunk to main .img
 				print "[i]     %s append to %s" % (outputChunkImgFile, outputImgFile)
 				tools.appendFile(outputChunkImgFile, outputImgFile)
