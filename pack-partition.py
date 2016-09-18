@@ -3,7 +3,6 @@ import sys
 import struct
 import shutil
 import tools
-from subprocess import call
 
 HEADER_SIZE = 16 * tools.KB # Header size is always 16KB
 DRAM_BUF_ADDR = '20200000'
@@ -96,7 +95,7 @@ with open(headerPart, 'wb') as header:
 		if lzo:
 			outputChunk = name + '.lzo'
 			print '[i]     LZO: %s -> %s' % (inputChunk, outputChunk)
-			call(['./bin/lzop', '-o',  outputChunk, '-1', inputChunk])
+			tools.lzo(inputChunk, outputChunk)
 		else:
 			outputChunk = inputChunk
 

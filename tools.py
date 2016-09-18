@@ -132,6 +132,12 @@ def unlzo(src, dest):
 	lzop = os.path.abspath('.') + '/bin/lzop.exe' if os.name == 'nt' else 'lzop'
 	os.system(lzop + ' -o {} -d {}'.format(dest, src))
 
+# unlzo
+# if NT then use ./bin/lzo.exe
+def lzo(src, dest):
+	lzop = os.path.abspath('.') + '/bin/lzop.exe' if os.name == 'nt' else 'lzop'
+	os.system(lzop + ' -o {} -1 {}'.format(dest, src))
+
 def parceArgs(string):
 	return re.findall('([^\s]+)', string)
 
