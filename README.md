@@ -19,7 +19,7 @@ Usage: unpack.py <firmware> <output folder [default: ./unpacked/]>
 ## Pack a single partition and create MStar bin firmware 
 ```
 Usage: pack-partition.py <firmware> <partition name> <image file> [<lzo> <chunk size KB,MB,GB>]
-Example: pack-partition.py system unpacked/system.img lzo 150MB
+Example: pack-partition.py MstarUpdate.bin system unpacked/system.img lzo 150MB
 		<firmware> - Firmware file name to create. Ex. MstarUpdate.bin
         <partition name> - Partition name. Important: The partition is not creating, 
                             so make sure it already exists on your device. Check ./unpacked/~header_script 
