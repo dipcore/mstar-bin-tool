@@ -4,6 +4,7 @@ import re
 import sys
 import string
 import binascii
+import shutil
 
 B  = 2**00
 KB = 2**10
@@ -45,7 +46,7 @@ def splitFile(file, destdir, chunksize):
 	chunks = []
 
 	# Just copy file if its size is less than chunk size
-	if os.path.getsize(file) < chunksize:
+	if os.path.getsize(file) < chunksize or chunksize == 0:
 		chunk = os.path.join(destdir, name + ext)
 		shutil.copyfile(file, chunk)
 		return [chunk]

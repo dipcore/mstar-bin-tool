@@ -9,40 +9,45 @@ DRAM_BUF_ADDR = '20200000'
 MAGIC_FOOTER = '12345678'
 
 tmpDir = 'tmp'
-outputFile = 'LetvUpgrade928.bin'
 headerPart = os.path.join(tmpDir, '~header')
 binPart = os.path.join(tmpDir, '~bin') 
 footerPart = os.path.join(tmpDir, '~footer') 
 
 # Parse args
 if len(sys.argv) == 1: 
-	print "Usage: pack-partition.py <partition name> <image file> [<lzo> <chunk size KB,MB,GB>]"
-	print "Example: pack-partition.py system unpacked/system.img lzo 150MB"
+	print "Usage: pack-partition.py <firmware> <partition name> <image file> [<lzo> <chunk size KB,MB,GB>]"
+	print "Example: pack-partition.py MstarUpdate.bin system system.img lzo 150MB"
 	quit()
 
 if len(sys.argv) == 2:
+	print "Firmware file name cannot be empty"
+	quit()
+
+if len(sys.argv) == 3:
 	print "Image file name cannot be empty"
 	quit()
 
-partName = sys.argv[1]
-imageFile = sys.argv[2]
+outputFile = sys.argv[1]
+partName = sys.argv[2]
+imageFile = sys.argv[3]
 lzo = False
 chunkSize = 0
 
 # Non required params
 # pack-partition.py system unpacked/system.img lzo
 # pack-partition.py system unpacked/system.img 200
-if len(sys.argv) == 4:
-	lzo = (sys.argv[3] == 'lzo')
-	if sys.argv[3] != 'lzo':
-		chunkSize = tools.sizeInt(sys.argv[3])
+if len(sys.argv) == 5:
+	lzo = (sys.argv[4] == 'lzo')
+	if sys.argv[4] != 'lzo':
+		chunkSize = tools.sizeInt(sys.argv[4])
 
 # pack-partition.py system unpacked/system.img lzo 150
-if len(sys.argv) == 5:
-	lzo = (sys.argv[3] == 'lzo')
-	chunkSize = tools.sizeInt(sys.argv[4])
+if len(sys.argv) == 6:
+	lzo = (sys.argv[4] == 'lzo')
+	chunkSize = tools.sizeInt(sys.argv[5])
 
 
+print '[i] Firmware: %s' % outputFile
 print '[i] Partition name: %s' % partName
 print '[i] Image file: %s' % imageFile
 print '[i] LZO: %s' % lzo
@@ -129,10 +134,10 @@ with open(headerPart, 'wb') as header:
 				quit()
 	
 
-#	header.write('setenv LetvUpgrade_complete 1\n')
-#	header.write('setenv ResetAfterUpgrade 1\n')
-#	header.write('setenv ForcePowerOn 1\n')
-#	header.write('saveenv\n')
+	header.write('setenv LetvUpgrade_complete 1\n')
+	header.write('setenv ResetAfterUpgrade 1\n')
+	header.write('setenv ForcePowerOn 0\n')
+	header.write('saveenv\n')
 	header.write('% <- this is end of file symbol\n')
 	header.flush()
 

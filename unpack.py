@@ -15,7 +15,7 @@ counter = {};
 
 # Parse args
 if len(sys.argv) == 1: 
-	print "Usage: unpack.py <Firmware> <Output folder [default: ./unpacked/]>"
+	print "Usage: unpack.py <firmware> <output folder [default: ./unpacked/]>"
 	quit()
 
 inputFile = sys.argv[1]
