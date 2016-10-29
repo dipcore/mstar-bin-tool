@@ -2,7 +2,7 @@
 
 Command line tools for manipulating MStar bin firmware files.
 
-Currently awailable tools:
+Currently available tools:
  - **unpack.py** - unpack MStar bin firmware
  - **pack-partition.py** - pack a single partition to MStar bin firmware
 
@@ -27,5 +27,5 @@ Example: pack-partition.py MstarUpdate.bin system unpacked/system.img lzo 150MB
         <image file> - Image or bin file to pack.
         <lzo> - Enable LZO packing. Non required param.
         <chunk size KB,MB,GB> - Chunk size. Ex: 150MB. 
-                                Non required param, by default whole image file is used as a sinle chunk.
+                                Non required param, by default whole image file is used as a single chunk.
 ```
