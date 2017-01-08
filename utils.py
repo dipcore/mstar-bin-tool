@@ -1,10 +1,9 @@
-import math
-import os
 import re
-import sys
+import os
+import shutil
 import string
 import binascii
-import shutil
+import math
 
 B  = 2**00
 KB = 2**10
@@ -28,6 +27,16 @@ def sizeStr(s):
 	s = round(s / p, 2)
 	return '%s %s' % (s,size_name[i])
 
+def str2bool(v):
+  return v.lower() in ("yes", "true", "True", "1")
+
+def getConfigValue(config, name, defValue):
+	try:
+		value = config[name]
+	except Exception as e:
+		value = defValue
+	return value
+
 def createDirectory(dir):
 	if not os.path.exists(dir): # if the directory does not exist
 		os.makedirs(dir) # make the directory
@@ -38,8 +47,8 @@ def createDirectory(dir):
 			try:
 				if os.path.isfile(file_path):
 					os.unlink(file_path) # unlink (delete) the file
-			except Exception, e:
-				print e
+			except e:
+				print (e)
 
 def splitFile(file, destdir, chunksize):
 	(name, ext) = os.path.splitext(os.path.basename(file))
@@ -73,7 +82,7 @@ def appendFile(src, dest, bufsize = 16 * MB):
 			while data:
 				data = f1.read(bufsize)
 				f2.write(data)
-	
+
 # Copy part of src file to dest file. 
 # offset - beginning of the part to copy
 # size - length of the part to copy
@@ -93,15 +102,6 @@ def copyPart(src, dest, offset, size, bufsize = 16 * MB, append = False):
 				f2.write(data)
 				size -= chunk
 
-# Trim part of src file and save the rest to dest file.
-# offset - beginning of the part to trim
-# size - length of the part to trim
-# bufsize - chunk size
-def trimPart(src, dest, offset, size, bufsize = 16 * MB):
-	srcSize = os.path.getsize(src)
-	copyPart(src, dest, 0, offset, bufsize)
-	copyPart(src, dest, offset + size, srcSize - offset - size, bufsize = bufsize, append = True)
-
 # Load and return part
 # file - source file
 # offset - beginning of the part
@@ -118,14 +118,7 @@ def alignFile(file, base = 0x1000):
 	result = base - os.path.getsize(file) % base
 	if result:
 		with open(file, 'ab') as f:
-			f.write('\xff' * result)
-
-# Calculate crc32
-# file - filename of a file to calculate
-def crc32(file):
-    buf = open(file,'rb').read()
-    buf = (binascii.crc32(buf) & 0xFFFFFFFF)
-    return buf
+			f.write(('\xff' * result).encode(encoding='iso-8859-1'))
 
 # unlzo
 # if NT then use ./bin/lzo.exe
@@ -133,11 +126,18 @@ def unlzo(src, dest):
 	lzop = os.path.abspath('.') + '/bin/lzop.exe' if os.name == 'nt' else 'lzop'
 	os.system(lzop + ' -o {} -d {}'.format(dest, src))
 
-# unlzo
+# lzo
 # if NT then use ./bin/lzo.exe
 def lzo(src, dest):
 	lzop = os.path.abspath('.') + '/bin/lzop.exe' if os.name == 'nt' else 'lzop'
 	os.system(lzop + ' -o {} -1 {}'.format(dest, src))
+
+# Calculate crc32
+# file - filename of a file to calculate
+def crc32(file):
+    buf = open(file,'rb').read()
+    buf = (binascii.crc32(buf) & 0xFFFFFFFF)
+    return buf
 
 def parceArgs(string):
 	return re.findall('([^\s]+)', string)
@@ -215,6 +215,8 @@ def processMmc(line):
 	# 	print 'Unknown mmc action'
 	# 	print args
 
+
+# TODO rewrite it
 fileNameCounter = {}
 def generateFileName(outputDirectory, part, ext):
 	fileName = os.path.join(outputDirectory, part['partition_name'] + ext)

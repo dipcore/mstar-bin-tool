@@ -3,10 +3,10 @@ import os
 import re
 import shutil
 
-import tools
+import utils
 
 DEBUG = False
-HEADER_SIZE = 16 * tools.KB # Header size is always 16KB
+HEADER_SIZE = 16 * utils.KB # Header size is always 16KB
 
 # Vars
 headerScript = ""
@@ -15,12 +15,12 @@ counter = {};
 
 # Parse args
 if len(sys.argv) == 1: 
-	print "Usage: unpack.py <firmware> <output folder [default: ./unpacked/]>"
+	print ("Usage: unpack.py <firmware> <output folder [default: ./unpacked/]>")
 	quit()
 
 inputFile = sys.argv[1]
 if not os.path.exists(inputFile):
-	print "No such file: %s" % inputFile
+	print ("No such file: {}".format(inputFile))
 	quit()
 
 if len(sys.argv) == 3:
@@ -29,57 +29,57 @@ else:
 	outputDirectory = 'unpacked'
 
 # Create output directory
-tools.createDirectory(outputDirectory)
+utils.createDirectory(outputDirectory)
 
 # Find header script
 # Header size is 16KB
 # Non used part is filled by 0xFF
-print "[i] Analizing header ..."
-header = tools.loadPart(inputFile, 0, HEADER_SIZE)
-tools.copyPart(inputFile, os.path.join(outputDirectory, "~header"), 0, HEADER_SIZE)
+print ("[i] Analizing header ...")
+header = utils.loadPart(inputFile, 0, HEADER_SIZE)
+utils.copyPart(inputFile, os.path.join(outputDirectory, "~header"), 0, HEADER_SIZE)
 
-offset = header.find('\xff')
+offset = header.find('\xff'.encode(encoding='iso-8859-1'))
 if offset != -1:
-	headerScript = header[:offset]
+	headerScript = header[:offset].decode()
 	headerScriptFound = True
 
 if not headerScriptFound:
-	print "[!] Could not find header script!"
+	print ("[!] Could not find header script!")
 	quit()
 	
 if DEBUG:
-	print headerScript
+	print (headerScript)
 
 # Save the script
-print "[i] Saving header script to " + os.path.join(outputDirectory, "~header_script") + " ..."
+print ("[i] Saving header script to " + os.path.join(outputDirectory, "~header_script") + " ...")
 with open(os.path.join(outputDirectory, "~header_script"), "w") as f:
 	f.write(headerScript)
 
 # Parse script
-print "[i] Parsing script ..."
+print ("[i] Parsing script ...")
 # Supporting filepartload, mmc, store_secure_info, store_nuttx_config
 for line in headerScript.splitlines():
 
 	if DEBUG:
-		print line
+		print (line)
 
 	if re.match("^filepartload", line):
-		params = tools.processFilePartLoad(line)
+		params = utils.processFilePartLoad(line)
 		offset =  params["offset"]
 		size =  params["size"]
 
 	if re.match("^store_secure_info", line):		
-	 	params = tools.processStoreSecureInfo(line)
+	 	params = utils.processStoreSecureInfo(line)
 	 	outputFile = os.path.join(outputDirectory, params["partition_name"])
-	 	tools.copyPart(inputFile, outputFile, int(offset, 16), int(size, 16))
+	 	utils.copyPart(inputFile, outputFile, int(offset, 16), int(size, 16))
 
 	if re.match("^store_nuttx_config", line):
-	 	params = tools.processStoreNuttxConfig(line)
+	 	params = utils.processStoreNuttxConfig(line)
 	 	outputFile = os.path.join(outputDirectory, params["partition_name"])
-	 	tools.copyPart(inputFile, outputFile, int(offset, 16), int(size, 16))
+	 	utils.copyPart(inputFile, outputFile, int(offset, 16), int(size, 16))
 
 	if re.match("^mmc", line):
-		params = tools.processMmc(line)
+		params = utils.processMmc(line)
 
 		if params:
 
@@ -87,29 +87,29 @@ for line in headerScript.splitlines():
 			# 	nothing here
 
 			if params["action"] == "write.boot":
-				outputFile = tools.generateFileName(outputDirectory, params, ".img")
-				tools.copyPart(inputFile, outputFile, int(offset, 16), int(size, 16))
-				print "[i] Partition: %s\tOffset: %s\tSize %s (%s) -> %s" % (params["partition_name"], offset, size, tools.sizeStr(int(size, 16)), outputFile)
+				outputFile = utils.generateFileName(outputDirectory, params, ".img")
+				utils.copyPart(inputFile, outputFile, int(offset, 16), int(size, 16))
+				print ("[i] Partition: {}\tOffset: {}\tSize {} ({}) -> {}".format(params["partition_name"], offset, size, utils.sizeStr(int(size, 16)), outputFile))
 
 			if params["action"] == "write.p":
 				outputFile = os.path.join(outputDirectory, params["partition_name"] + ".img")
-				tools.copyPart(inputFile, outputFile, int(offset, 16), int(size, 16))
-				print "[i] Partition: %s\tOffset: %s\tSize %s (%s) -> %s" % (params["partition_name"], offset, size, tools.sizeStr(int(size, 16)), outputFile)
+				utils.copyPart(inputFile, outputFile, int(offset, 16), int(size, 16))
+				print ("[i] Partition: {}\tOffset: {}\tSize {} ({}) -> {}".format(params["partition_name"], offset, size, utils.sizeStr(int(size, 16)), outputFile))
 
 			if params["action"] == "write.p.continue":
 				outputFile = os.path.join(outputDirectory, params["partition_name"] + ".img")	
-				tools.copyPart(inputFile, outputFile, int(offset, 16), int(size, 16), append = True)
-				print "[i] Partition: %s\tOffset: %s\tSize %s (%s) append to %s" % (params["partition_name"], offset, size, tools.sizeStr(int(size, 16)), outputFile)
+				utils.copyPart(inputFile, outputFile, int(offset, 16), int(size, 16), append = True)
+				print ("[i] Partition: {}\tOffset: {}\tSize {} ({}) append to {}".format(params["partition_name"], offset, size, utils.sizeStr(int(size, 16)), outputFile))
 
 			if params["action"] == "unlzo":
-				outputLzoFile = tools.generateFileName(outputDirectory, params, ".lzo")
-				outputImgFile = tools.generateFileName(outputDirectory, params, ".img")
+				outputLzoFile = utils.generateFileName(outputDirectory, params, ".lzo")
+				outputImgFile = utils.generateFileName(outputDirectory, params, ".img")
 				# save .lzo
-				print "[i] Partition: %s\tOffset: %s\tSize %s (%s) -> %s" % (params["partition_name"], offset, size, tools.sizeStr(int(size, 16)), outputLzoFile)
-				tools.copyPart(inputFile, outputLzoFile, int(offset, 16), int(size, 16))
+				print ("[i] Partition: {}\tOffset: {}\tSize {} ({}) -> {}".format(params["partition_name"], offset, size, utils.sizeStr(int(size, 16)), outputLzoFile))
+				utils.copyPart(inputFile, outputLzoFile, int(offset, 16), int(size, 16))
 				# unpack .lzo -> .img
-				print "[i]     Unpacking LZO (Please be patient) %s -> %s" % (outputLzoFile, outputImgFile)
-				tools.unlzo(outputLzoFile, outputImgFile)
+				print ("[i]     Unpacking LZO (Please be patient) {} -> {}".format(outputLzoFile, outputImgFile))
+				utils.unlzo(outputLzoFile, outputImgFile)
 				# delete .lzo
 				os.remove(outputLzoFile)
 
@@ -122,14 +122,14 @@ for line in headerScript.splitlines():
 				outputChunkLzoFile = os.path.join(outputDirectory, params["partition_name"] + str(counter[params["partition_name"]]) + ".lzo")
 				outputChunkImgFile = os.path.join(outputDirectory, params["partition_name"] + str(counter[params["partition_name"]]) + ".img")
 				# save .lzo
-				print "[i] Partition: %s\tOffset: %s\tSize %s (%s) -> %s" % (params["partition_name"], offset, size, tools.sizeStr(int(size, 16)), outputChunkLzoFile)
-				tools.copyPart(inputFile, outputChunkLzoFile, int(offset, 16), int(size, 16))
+				print ("[i] Partition: {}\tOffset: {}\tSize {} ({}) -> {}".format(params["partition_name"], offset, size, utils.sizeStr(int(size, 16)), outputChunkLzoFile))
+				utils.copyPart(inputFile, outputChunkLzoFile, int(offset, 16), int(size, 16))
 				# unpack chunk .lzo -> .img
-				print "[i]     Unpacking LZO (Please be patient) %s -> %s" % (outputChunkLzoFile, outputChunkImgFile)
-				tools.unlzo(outputChunkLzoFile, outputChunkImgFile)
+				print ("[i]     Unpacking LZO (Please be patient) {} -> {}".format(outputChunkLzoFile, outputChunkImgFile))
+				utils.unlzo(outputChunkLzoFile, outputChunkImgFile)
 				# append the chunk to main .img
-				print "[i]     %s append to %s" % (outputChunkImgFile, outputImgFile)
-				tools.appendFile(outputChunkImgFile, outputImgFile)
+				print ("[i]     {} append to {}".format(outputChunkImgFile, outputImgFile))
+				utils.appendFile(outputChunkImgFile, outputImgFile)
 				# delete chunk
 				os.remove(outputChunkLzoFile)
 				os.remove(outputChunkImgFile)

@@ -1,10 +1,10 @@
 # mstar-bin-tool
 
-Command line tools for manipulating MStar bin firmware files.
+Command line tools to pack/unpack MStar bin firmware
 
 Currently available tools:
  - **unpack.py** - unpack MStar bin firmware
- - **pack-partition.py** - pack a single partition to MStar bin firmware
+ - **pack.py** - pack MStar bin firmware
 
 
 ## Unpack MStar bin firmware files
@@ -16,16 +16,11 @@ Usage: unpack.py <firmware> <output folder [default: ./unpacked/]>
 ```
 
 
-## Pack a single partition and create MStar bin firmware 
+## Pack MStar bin firmware 
 ```
-Usage: pack-partition.py <firmware> <partition name> <image file> [<lzo> <chunk size KB,MB,GB>]
-Example: pack-partition.py MstarUpdate.bin system unpacked/system.img lzo 150MB
-		<firmware> - Firmware file name to create. Ex. MstarUpdate.bin
-        <partition name> - Partition name. Important: The partition is not creating, 
-                            so make sure it already exists on your device. Check ./unpacked/~header_script 
-                            file for 'mmc create <partition name>' line.
-        <image file> - Image or bin file to pack.
-        <lzo> - Enable LZO packing. Non required param.
-        <chunk size KB,MB,GB> - Chunk size. Ex: 150MB. 
-                                Non required param, by default whole image file is used as a single chunk.
+Usage: pack.py <config file>
+Example: pack.py configs/letv-x355pro-full.ini
+		<config file> - Configuration file. The config file structure will be described later.
+                        For now you can take a look at configs/letv-x355pro-full.ini
+                        and use it as an example
 ```
