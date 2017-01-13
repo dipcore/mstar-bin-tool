@@ -227,3 +227,72 @@ def generateFileName(outputDirectory, part, ext):
 			fileNameCounter[part['partition_name']] = 1
 		fileName = os.path.join(outputDirectory, part['partition_name'] + str(fileNameCounter[part['partition_name']]) + ext)
 	return fileName
+
+def directive(header, dramBufAddr, useHexValuesPrefix):
+
+	print (useHexValuesPrefix)
+
+	def filepartload(filename, offset, size):
+		if (useHexValuesPrefix):
+			header.write('filepartload 0x{} {} 0x{} 0x{}\n'.format(dramBufAddr, filename, offset, size).encode())
+		else:
+			header.write('filepartload {} {} {} {}\n'.format(dramBufAddr, filename, offset, size).encode())
+
+	def create(name, size):
+		if (useHexValuesPrefix):
+			header.write('mmc create {} 0x{}\n'.format(name, size).encode())
+		else:
+			header.write('mmc create {} {}\n'.format(name, size).encode())
+
+	def erase(name):
+		header.write('mmc erase {}\n'.format(name).encode())
+
+
+	def unlzo(name, size):
+		if (useHexValuesPrefix):
+			header.write('mmc unlzo 0x{} 0x{} {} 1\n'.format(dramBufAddr, size, name).encode())
+		else:
+			header.write('mmc unlzo {} {} {} 1\n'.format(dramBufAddr, size, name).encode())
+
+	def unlzo_cont(name, size):
+		if (useHexValuesPrefix):
+			header.write('mmc unlzo.cont 0x{} 0x{} {} 1\n'.format(dramBufAddr, size, name).encode())
+		else:
+			header.write('mmc unlzo.cont {} {} {} 1\n'.format(dramBufAddr, size, name).encode())
+
+	def write_p(name, size):
+		if (useHexValuesPrefix):
+			header.write('mmc write.p 0x{} {} 0x{} 1\n'.format(dramBufAddr, name, size).encode())
+		else:
+			header.write('mmc write.p {} {} {} 1\n'.format(dramBufAddr, name, size).encode())
+
+	def store_secure_info(name):
+		if (useHexValuesPrefix):
+			header.write('store_secure_info {} 0x{}\n'.format(name, dramBufAddr).encode())
+		else:
+			header.write('store_secure_info {} {}\n'.format(name, dramBufAddr).encode())
+
+	def store_nuttx_config(name):
+		if (useHexValuesPrefix):
+			header.write('store_nuttx_config {} 0x{}\n'.format(name, dramBufAddr).encode())
+		else:
+			header.write('store_nuttx_config {} {}\n'.format(name, dramBufAddr).encode())
+
+	def write_boot(size):
+		if (useHexValuesPrefix):
+			header.write('mmc write.boot 1 0x{} 0 0x{}\n'.format(dramBufAddr, size).encode())
+		else:
+			header.write('mmc write.boot 1 {} 0 {}\n'.format(dramBufAddr, size).encode())
+
+	#####
+
+	directive.filepartload = filepartload	
+	directive.create = create	
+	directive.erase = erase	
+	directive.unlzo = unlzo	
+	directive.unlzo_cont = unlzo_cont	
+	directive.write_p = write_p	
+	directive.store_secure_info = store_secure_info	
+	directive.store_nuttx_config = store_nuttx_config	
+	directive.write_boot = write_boot	
+	return directive

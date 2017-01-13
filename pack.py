@@ -36,6 +36,7 @@ import time
 import os
 import struct
 import utils
+import shutil
 
 tmpDir = 'tmp'
 headerPart = os.path.join(tmpDir, '~header')
@@ -59,7 +60,7 @@ config.read(configFile)
 main = config['Main'];
 firmwareFileName = main['FirmwareFileName']
 projectFolder = main['ProjectFolder']
-useHexValues = main['UseHexValues']
+useHexValuesPrefix = utils.str2bool(main['useHexValuesPrefix'])
 
 SCRIPT_FIRMWARE_FILE_NAME = main['SCRIPT_FIRMWARE_FILE_NAME']
 DRAM_BUF_ADDR = main['DRAM_BUF_ADDR']
@@ -82,7 +83,7 @@ print("\n")
 print ("[i] Date: {}".format(time.strftime("%d/%m/%Y %H:%M:%S")))
 print ("[i] Firmware file name: {}".format(firmwareFileName))
 print ("[i] Project folder: {}".format(projectFolder))
-print ("[i] Use hex values: {}".format(useHexValues))
+print ("[i] Use hex values: {}".format(useHexValuesPrefix))
 print ("[i] Script firmware filename: {}".format(SCRIPT_FIRMWARE_FILE_NAME))
 print ("[i] DRAM_BUF_ADDR: {}".format(DRAM_BUF_ADDR))
 print ("[i] MAGIC_FOOTER: {}".format(MAGIC_FOOTER))
@@ -97,6 +98,10 @@ print ('[i] Generating header and bin ...')
 open(binPart, 'w').close()
 
 with open(headerPart, 'wb') as header:
+
+	# Directive tool
+	directive = utils.directive(header, DRAM_BUF_ADDR, useHexValuesPrefix)
+
 	header.write('# Header prefix'.encode())
 	header.write(headerScriptPrefix.encode())
 	header.write('\n\n'.encode())
@@ -128,10 +133,10 @@ with open(headerPart, 'wb') as header:
 		header.write('# {}\n'.format(name).encode())
 
 		if (create):
-			header.write('mmc create {} {}\n'.format(name, size).encode())
+			directive.create(name, size)
 
 		if (erase):
-			header.write('mmc erase.p {}\n'.format(name).encode())
+			directive.erase(name)
 
 		if (type == 'partitionImage'):
 			
@@ -152,10 +157,11 @@ with open(headerPart, 'wb') as header:
 				else:
 					outputChunk = inputChunk
 
-				size = os.path.getsize(outputChunk)
-				offset = os.path.getsize(binPart) + HEADER_SIZE 
-				header.write('filepartload {} {} {:02X} {:02X}\n'.format(DRAM_BUF_ADDR, SCRIPT_FIRMWARE_FILE_NAME, offset, size).encode())
+				# Size, offset (hex)
+				size = "{:02X}".format(os.path.getsize(outputChunk))
+				offset = "{:02X}".format(os.path.getsize(binPart) + HEADER_SIZE)
 
+				directive.filepartload(SCRIPT_FIRMWARE_FILE_NAME, offset, size)
 				print ('[i]     Align chunk')
 				utils.alignFile(outputChunk)
 
@@ -164,12 +170,12 @@ with open(headerPart, 'wb') as header:
 
 				if lzo:
 					if index == 0:
-						header.write('mmc unlzo {} {:02X} {} 1\n'.format(DRAM_BUF_ADDR, size, name).encode())
+						directive.unlzo(name, size)
 					else:
-						header.write('mmc unlzo.cont {} {:02X} {} 1\n'.format(DRAM_BUF_ADDR, size, name).encode())
+						directive.unlzo_cont(name, size)
 				else:
 					if len(chunks) == 1:
-						header.write('mmc write.p {} {} {:02X} 1\n'.format(DRAM_BUF_ADDR, name, size).encode())
+						directive.write_p(name, size)
 					else:
 						# filepartload 50000000 MstarUpgrade.bin e04000 c800000
 						# mmc write.p.continue 50000000 system 0 c800000 1
@@ -187,15 +193,14 @@ with open(headerPart, 'wb') as header:
 
 			size = os.path.getsize(outputChunk)
 			offset = os.path.getsize(binPart) + HEADER_SIZE 
-			header.write('filepartload {} {} {:02X} {:02X}\n'.format(DRAM_BUF_ADDR, SCRIPT_FIRMWARE_FILE_NAME, offset, size).encode())
+			directive.filepartload(SCRIPT_FIRMWARE_FILE_NAME, offset, size)
 
 			print ('[i]     Align')
 			utils.alignFile(outputChunk)
 
 			print ('[i]     Append: {} -> {}'.format(outputChunk, binPart))
 			utils.appendFile(outputChunk, binPart)
-
-			header.write('store_secure_info {} {}\n'.format(name, DRAM_BUF_ADDR).encode())
+			directive.store_secure_info(name)
 
 		if (type == 'nuttxConfig'):
 
@@ -204,15 +209,14 @@ with open(headerPart, 'wb') as header:
 
 			size = os.path.getsize(outputChunk)
 			offset = os.path.getsize(binPart) + HEADER_SIZE 
-			header.write('filepartload {} {} {:02X} {:02X}\n'.format(DRAM_BUF_ADDR, SCRIPT_FIRMWARE_FILE_NAME, offset, size).encode())
+			directive.filepartload(SCRIPT_FIRMWARE_FILE_NAME, offset, size)
 
 			print ('[i]     Align')
 			utils.alignFile(outputChunk)
 
 			print ('[i]     Append: {} -> {}'.format(outputChunk, binPart))
 			utils.appendFile(outputChunk, binPart)
-
-			header.write('store_nuttx_config {} {}\n'.format(name, DRAM_BUF_ADDR).encode())
+			directive.store_nuttx_config(name)
 
 		if (type == 'sboot'):
 
@@ -221,15 +225,15 @@ with open(headerPart, 'wb') as header:
 
 			size = os.path.getsize(outputChunk)
 			offset = os.path.getsize(binPart) + HEADER_SIZE 
-			header.write('filepartload {} {} {:02X} {:02X}\n'.format(DRAM_BUF_ADDR, SCRIPT_FIRMWARE_FILE_NAME, offset, size).encode())
+			directive.filepartload(SCRIPT_FIRMWARE_FILE_NAME, offset, size)
 
 			print ('[i]     Align')
 			utils.alignFile(outputChunk)
 
 			print ('[i]     Append: {} -> {}'.format(outputChunk, binPart))
 			utils.appendFile(outputChunk, binPart)
-
-			header.write('mmc write.boot 1 {} 0 {:02X}\n'.format(DRAM_BUF_ADDR, size).encode())
+			directive.write_boot(size)
+			
 
 	header.write('\n'.encode())
 	header.write('# Header suffix'.encode())
