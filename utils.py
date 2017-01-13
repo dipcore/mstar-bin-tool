@@ -242,8 +242,8 @@ def directive(header, dramBufAddr, useHexValuesPrefix):
 		else:
 			header.write('mmc create {} {}\n'.format(name, size).encode())
 
-	def erase(name):
-		header.write('mmc erase {}\n'.format(name).encode())
+	def erase_p(name):
+		header.write('mmc erase.p {}\n'.format(name).encode())
 
 
 	def unlzo(name, size):
@@ -286,7 +286,7 @@ def directive(header, dramBufAddr, useHexValuesPrefix):
 
 	directive.filepartload = filepartload	
 	directive.create = create	
-	directive.erase = erase	
+	directive.erase_p = erase_p	
 	directive.unlzo = unlzo	
 	directive.unlzo_cont = unlzo_cont	
 	directive.write_p = write_p	
