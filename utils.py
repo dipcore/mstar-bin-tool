@@ -123,13 +123,13 @@ def alignFile(file, base = 0x1000):
 # unlzo
 # if NT then use ./bin/lzo.exe
 def unlzo(src, dest):
-	lzop = os.path.abspath('.') + '/bin/lzop.exe' if os.name == 'nt' else 'lzop'
+	lzop = 'bin\\lzop.exe' if os.name == 'nt' else 'lzop'
 	os.system(lzop + ' -o {} -d {}'.format(dest, src))
 
 # lzo
 # if NT then use ./bin/lzo.exe
 def lzo(src, dest):
-	lzop = os.path.abspath('.') + '/bin/lzop.exe' if os.name == 'nt' else 'lzop'
+	lzop = 'bin\\lzop.exe' if os.name == 'nt' else 'lzop'
 	os.system(lzop + ' -o {} -1 {}'.format(dest, src))
 
 # Calculate crc32
@@ -229,8 +229,6 @@ def generateFileName(outputDirectory, part, ext):
 	return fileName
 
 def directive(header, dramBufAddr, useHexValuesPrefix):
-
-	print (useHexValuesPrefix)
 
 	def filepartload(filename, offset, size):
 		if (useHexValuesPrefix):
