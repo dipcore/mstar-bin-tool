@@ -5,7 +5,7 @@ Command line tools to pack/unpack MStar bin firmware
 Currently available tools:
  - **unpack.py** - unpack MStar bin firmware
  - **pack.py** - pack MStar bin firmware
- - **extract_keys.py** - grub AES and RSA-public keys from MBOOT binary
+ - **extract_keys.py** - extract AES and RSA-public keys from MBOOT binary
 
 
 ## Unpack MStar bin firmware files
