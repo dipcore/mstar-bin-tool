@@ -4,6 +4,7 @@ import shutil
 import string
 import binascii
 import math
+import ctypes
 
 B  = 2**00
 KB = 2**10
@@ -294,3 +295,15 @@ def directive(header, dramBufAddr, useHexValuesPrefix):
 	directive.store_nuttx_config = store_nuttx_config	
 	directive.write_boot = write_boot	
 	return directive
+
+def hexString(v):
+	return (' '.join([format(i, '#04x') for i in v]))
+
+def unpackStructure(s, b):
+	result = s()
+	ctypes.memmove(ctypes.addressof(result), b, ctypes.sizeof(s))
+	return result
+
+def writeFile(file, data):
+	with open(file, 'wb') as f:
+		f.write(data)
