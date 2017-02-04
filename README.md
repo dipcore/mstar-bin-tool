@@ -44,8 +44,8 @@ Example: extract_keys.py ./unpacked/MBOOT.img ./keys 0x169e00 0x450
 
 ## Encrypt partition and generate signature
 All new MStar builds have SECURE_BOOT option enabled. In that case 
-boot.img and recovery.img is encripted (AES) and signed with RSA priv keys.
-That script is used to encript image and generate sign file. 
+boot.img and recovery.img is encrypted (AES) and signed with RSA priv keys.
+That script is used to encrypt image and generate sign file. 
 
 To manually encrypt|decrypt image use aescrypt tool from bin folder.
 AES key can be extracted from MBOOT with extract_keys.py script.
