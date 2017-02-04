@@ -6,6 +6,7 @@ Currently available tools:
  - **unpack.py** - unpack MStar bin firmware
  - **pack.py** - pack MStar bin firmware
  - **extract_keys.py** - extract AES and RSA-public keys from MBOOT binary
+ - **secure_partition.py** - encrypt image and generate signature file
 
 
 ## Unpack MStar bin firmware files
@@ -41,3 +42,15 @@ Example: extract_keys.py ./unpacked/MBOOT.img
 Example: extract_keys.py ./unpacked/MBOOT.img ./keys 0x169e00 0x450
 ```
 
+## Encrypt partition and generate signature
+All new MStar builds have SECURE_BOOT option enabled. In that case 
+boot.img and recovery.img is encripted (AES) and signed with RSA priv keys.
+That script is used to encript image and generate sign file. 
+
+To manually encrypt|decrypt image use aescrypt tool from bin folder.
+AES key can be extracted from MBOOT with extract_keys.py script.
+
+```
+Usage: secure_partition.py <file to encrypt> <AES key file> <RSA private key file> <RSA public key file> <output encripted file> <output signature file>
+Example: secure_partition.py ./pack/boot.img ./keys/AESbootKey ./keys/RSAboot_priv.txt ./keys/RSAboot_pub.txt ./pack/boot.img.aes ./pack/bootSign
+```
