@@ -51,6 +51,6 @@ To manually encrypt|decrypt image use aescrypt tool from bin folder.
 AES key can be extracted from MBOOT with extract_keys.py script.
 
 ```
-Usage: secure_partition.py <file to encrypt> <AES key file> <RSA private key file> <RSA public key file> <output encripted file> <output signature file>
+Usage: secure_partition.py <file to encrypt> <AES key file> <RSA private key file> <RSA public key file> <output encrypted file> <output signature file>
 Example: secure_partition.py ./pack/boot.img ./keys/AESbootKey ./keys/RSAboot_priv.txt ./keys/RSAboot_pub.txt ./pack/boot.img.aes ./pack/bootSign
 ```

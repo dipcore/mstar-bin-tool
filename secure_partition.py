@@ -13,7 +13,7 @@ import sys
 
 # Command line args
 if len(sys.argv) == 1: 
-	print ("Usage: secure_partition.py <file to encrypt> <AES key file> <RSA private key file> <RSA public key file> <output encripted file> <output signature file>")
+	print ("Usage: secure_partition.py <file to encrypt> <AES key file> <RSA private key file> <RSA public key file> <output encrypted file> <output signature file>")
 	print ("Example: secure_partition.py ./pack/boot.img ./keys/AESbootKey ./keys/RSAboot_priv.txt ./keys/RSAboot_pub.txt ./pack/boot.img.aes ./pack/boot.signature.bin")
 	quit()
 
