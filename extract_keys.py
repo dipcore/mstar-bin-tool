@@ -42,10 +42,16 @@
 
 	typedef struct
 	{
+	  U8 N[RSA_PUBLIC_KEY_N_LEN];
+	  U8 E[RSA_PUBLIC_KEY_E_LEN];
+	}RSA_PUBLIC_KEY;
+
+	typedef struct
+	{
 	    _SUB_SECURE_INFO customer;
-	    U8 u8RSABootPublicKey[RSA_PUBLIC_KEY_LEN];   
-	    U8 u8RSAUpgradePublicKey[RSA_PUBLIC_KEY_LEN];       
-	    U8 u8RSAImagePublicKey[RSA_PUBLIC_KEY_LEN];      
+	    RSA_PUBLIC_KEY u8RSABootPublicKey;
+	    RSA_PUBLIC_KEY u8RSAUpgradePublicKey;
+	    RSA_PUBLIC_KEY u8RSAImagePublicKey;
 	    U8 u8AESBootKey[AES_KEY_LEN];   
 	    U8 u8AESUpgradeKey[AES_KEY_LEN];       
 	    U8 u8MagicID[16];
@@ -88,11 +94,15 @@ class SUB_SECURE_INFO(Structure):
 				("info", IMAGE_INFO),
 				("u8Signature", c_uint8 * SIGNATURE_LEN)]
 
+class RSA_PUBLIC_KEY(Structure):
+	_fields_ = [("N", c_uint8 * RSA_PUBLIC_KEY_N_LEN),
+				("E", c_uint8 * RSA_PUBLIC_KEY_E_LEN)]
+
 class CUSTOMER_KEY_BANK(Structure):
 	_fields_ = [("customer", SUB_SECURE_INFO),
-				("u8RSABootPublicKey", c_uint8 * RSA_PUBLIC_KEY_LEN),
-				("u8RSAUpgradePublicKey", c_uint8 * RSA_PUBLIC_KEY_LEN),
-				("u8RSAImagePublicKey", c_uint8 * RSA_PUBLIC_KEY_LEN),
+				("u8RSABootPublicKey", RSA_PUBLIC_KEY),
+				("u8RSAUpgradePublicKey", RSA_PUBLIC_KEY),
+				("u8RSAImagePublicKey", RSA_PUBLIC_KEY),
 				("u8AESBootKey", c_uint8 * AES_KEY_LEN),
 				("u8AESUpgradeKey", c_uint8 * AES_KEY_LEN),
 				("u8MagicID", c_uint8 * 16),
@@ -126,7 +136,7 @@ print ("[i] Create output directory")
 utils.createDirectory(outFolder)
 
 # Get the key bank section and store it
-outEncKeyBankFile = os.path.join(outFolder, 'key_bank_encrypted.bin')
+outEncKeyBankFile = os.path.join(outFolder, 'key_bank.bin')
 print ("[i] Store encrypted mstar key bank to {}".format(outEncKeyBankFile))
 utils.copyPart(mboot, outEncKeyBankFile, offset, size)
 
@@ -142,9 +152,12 @@ if (DEBUG):
 	print ( "[i] u32Size: 0x{:08x}".format( keyBank.customer.info.u32Size ) )
 	print ( "[i] u8Signature:\n{}".format( utils.hexString(keyBank.customer.u8Signature) ) )
 
-	print ( "[i] u8RSABootPublicKey:\n{}".format( utils.hexString(keyBank.u8RSABootPublicKey) ) )
-	print ( "[i] u8RSAUpgradePublicKey:\n{}".format( utils.hexString(keyBank.u8RSAUpgradePublicKey) ) )
-	print ( "[i] u8RSAImagePublicKey:\n{}".format( utils.hexString(keyBank.u8RSAImagePublicKey) ) )
+	print ( "[i] u8RSABootPublicKey N:\n{}".format( utils.hexString(keyBank.u8RSABootPublicKey.N) ) )
+	print ( "[i] u8RSABootPublicKey E:\n{}".format( utils.hexString(keyBank.u8RSABootPublicKey.E) ) )
+	print ( "[i] u8RSAUpgradePublicKey N:\n{}".format( utils.hexString(keyBank.u8RSAUpgradePublicKey.N) ) )
+	print ( "[i] u8RSAUpgradePublicKey E:\n{}".format( utils.hexString(keyBank.u8RSAUpgradePublicKey.E) ) )
+	print ( "[i] u8RSAImagePublicKey N:\n{}".format( utils.hexString(keyBank.u8RSAImagePublicKey.N) ) )
+	print ( "[i] u8RSAImagePublicKey E:\n{}".format( utils.hexString(keyBank.u8RSAImagePublicKey.E) ) )
 	print ( "[i] u8AESBootKey:\n{}".format( utils.hexString(keyBank.u8AESBootKey) ) )
 	print ( "[i] u8AESUpgradeKey:\n{}".format( utils.hexString(keyBank.u8AESUpgradeKey) ) )
 
@@ -153,10 +166,21 @@ if (DEBUG):
 
 # Save keys
 print ("[i] Save keys")
-utils.writeFile(os.path.join(outFolder, 'RSABootPublicKey'), keyBank.u8RSABootPublicKey)
-utils.writeFile(os.path.join(outFolder, 'RSAUpgradePublicKey'), keyBank.u8RSAUpgradePublicKey)
-utils.writeFile(os.path.join(outFolder, 'RSAImagePublicKey'), keyBank.u8RSAImagePublicKey)
-utils.writeFile(os.path.join(outFolder, 'AESBootKey'), keyBank.u8AESBootKey)
-utils.writeFile(os.path.join(outFolder, 'AESUpgradeKey'), keyBank.u8AESUpgradeKey)
+
+# RSA Boot
+utils.writeFile(os.path.join(outFolder, 'RSAboot_pub.bin'), keyBank.u8RSABootPublicKey)
+utils.writeRSAPublicKey(os.path.join(outFolder, 'RSAboot_pub.txt'), keyBank.u8RSABootPublicKey)
+
+# RSA Upgrade
+utils.writeFile(os.path.join(outFolder, 'RSAupgrade_pub.bin'), keyBank.u8RSAUpgradePublicKey)
+utils.writeRSAPublicKey(os.path.join(outFolder, 'RSAupgrade_pub.txt'), keyBank.u8RSAUpgradePublicKey)
+
+# RSA Image
+utils.writeFile(os.path.join(outFolder, 'RSAimage_pub.bin'), keyBank.u8RSAImagePublicKey)
+utils.writeRSAPublicKey(os.path.join(outFolder, 'RSAimage_pub.txt'), keyBank.u8RSAImagePublicKey)
+
+# AES
+utils.writeFile(os.path.join(outFolder, 'AESBoot.bin'), keyBank.u8AESBootKey)
+utils.writeFile(os.path.join(outFolder, 'AESUpgrade.bin'), keyBank.u8AESUpgradeKey)
 
 print ("Done")

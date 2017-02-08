@@ -296,8 +296,8 @@ def directive(header, dramBufAddr, useHexValuesPrefix):
 	directive.write_boot = write_boot	
 	return directive
 
-def hexString(v):
-	return (' '.join([format(i, '#04x') for i in v]))
+def hexString(v, delimiter = ' '):
+	return (delimiter.join([format(i, '02X') for i in v]))
 
 def unpackStructure(s, b):
 	result = s()
@@ -307,3 +307,7 @@ def unpackStructure(s, b):
 def writeFile(file, data):
 	with open(file, 'wb') as f:
 		f.write(data)
+
+def writeRSAPublicKey(file, key):
+	writeFile(file, 
+		str.encode( "N = {}\nE = {}".format(hexString(key.N, ''), hexString(key.E, '')) ))

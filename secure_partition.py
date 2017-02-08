@@ -1,10 +1,10 @@
 '''
-This tool is used to sign (aka generate "secureinfo") and encript partition
+This tool is used to sign (aka generate "secureinfo") and encrypt partition
 
 Almost all new Mstar builds I saw have SECURITY_BOOT option enebled. Which means it uses AES to 
-encript boot.img and recovery.img and RSA to generate signature (Plus multiple internal security updates).
+encrypt boot.img and recovery.img and RSA to generate signature (Plus multiple internal security updates).
 
-This script will generate two files: encripted image and signature file
+This script will generate two files: encrypted image and signature file
 
 '''
 
