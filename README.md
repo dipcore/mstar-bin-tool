@@ -42,12 +42,33 @@ Example: extract_keys.py ./unpacked/MBOOT.img
 Example: extract_keys.py ./unpacked/MBOOT.img ./keys 0x169e00 0x450
 ```
 
+## Encrypt/Decrypt partition
+You can encrypt/decrypt partition with using *aescrypt2.exe* tool, which is located in bin/win32 folder
+
+Default mstar key is *hex:0007FF4154534D92FC55AA0FFF0110E0* All mstar default keys are in default_keys folder. (These keys are in public access in github)
+
+Last parameter can be hex value or path to AES key. If your vendor is using custom aes keys you can use extract_keys.py to extract them.
+
+To encrypt image use:
+```
+aescrypt2 0 boot.img boot.img.aes hex:0007FF4154534D92FC55AA0FFF0110E0
+or
+aescrypt2 0 boot.img boot.img.aes keys/AESBootKey
+```
+
+So to decrypt image use:
+```
+aescrypt2 1 boot.img.aes boot.img hex:0007FF4154534D92FC55AA0FFF0110E0
+or
+aescrypt2 1 boot.img boot.img.aes keys/AESBootKey
+```
+
 ## Encrypt partition and generate signature
 All new MStar builds have SECURE_BOOT option enabled. In that case 
 boot.img and recovery.img is encrypted (AES) and signed with RSA priv keys.
 That script is used to encrypt image and generate sign file. 
 
-To manually encrypt|decrypt image use aescrypt tool from bin folder.
+To manually encrypt|decrypt image use aescrypt2 tool from bin folder.
 AES key can be extracted from MBOOT with extract_keys.py script.
 
 ```
