@@ -191,8 +191,8 @@ with open(headerPart, 'wb') as header:
 			chunks = utils.splitFile(imageFile, tmpDir, chunksize = 0)
 			outputChunk = chunks[0]
 
-			size = os.path.getsize(outputChunk)
-			offset = os.path.getsize(binPart) + HEADER_SIZE 
+			size = "{:02X}".format(os.path.getsize(outputChunk))
+			offset = "{:02X}".format(os.path.getsize(binPart) + HEADER_SIZE)
 			directive.filepartload(SCRIPT_FIRMWARE_FILE_NAME, offset, size)
 
 			print ('[i]     Align')
@@ -207,8 +207,8 @@ with open(headerPart, 'wb') as header:
 			chunks = utils.splitFile(imageFile, tmpDir, chunksize = 0)
 			outputChunk = chunks[0]
 
-			size = os.path.getsize(outputChunk)
-			offset = os.path.getsize(binPart) + HEADER_SIZE 
+			size = "{:02X}".format(os.path.getsize(outputChunk))
+			offset = "{:02X}".format(os.path.getsize(binPart) + HEADER_SIZE)
 			directive.filepartload(SCRIPT_FIRMWARE_FILE_NAME, offset, size)
 
 			print ('[i]     Align')
@@ -223,8 +223,8 @@ with open(headerPart, 'wb') as header:
 			chunks = utils.splitFile(imageFile, tmpDir, chunksize = 0)
 			outputChunk = chunks[0]
 
-			size = os.path.getsize(outputChunk)
-			offset = os.path.getsize(binPart) + HEADER_SIZE 
+			size = "{:02X}".format(os.path.getsize(outputChunk))
+			offset = "{:02X}".format(os.path.getsize(binPart) + HEADER_SIZE)
 			directive.filepartload(SCRIPT_FIRMWARE_FILE_NAME, offset, size)
 
 			print ('[i]     Align')
