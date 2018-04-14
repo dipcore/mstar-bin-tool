@@ -11,7 +11,7 @@ HEADER_SIZE = 16 * utils.KB # Header size is always 16KB
 # Vars
 headerScript = ""
 headerScriptFound = False
-counter = {};
+counter = {}
 
 # Parse args
 if len(sys.argv) == 1: 
@@ -38,7 +38,7 @@ print ("[i] Analizing header ...")
 header = utils.loadPart(inputFile, 0, HEADER_SIZE)
 utils.copyPart(inputFile, os.path.join(outputDirectory, "~header"), 0, HEADER_SIZE)
 
-offset = header.find('\xff'.encode(encoding='iso-8859-1'))
+offset = header.find(b'%')
 if offset != -1:
 	headerScript = header[:offset].decode()
 	headerScriptFound = True
