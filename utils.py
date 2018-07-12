@@ -231,11 +231,11 @@ def generateFileName(outputDirectory, part, ext):
 
 def directive(header, dramBufAddr, useHexValuesPrefix):
 
-	def filepartload(filename, offset, size):
+	def filepartload(filename, offset, size, memoryOffset=dramBufAddr):
 		if (useHexValuesPrefix):
-			header.write('filepartload 0x{} {} 0x{} 0x{}\n'.format(dramBufAddr, filename, offset, size).encode())
+			header.write('filepartload 0x{} {} 0x{} 0x{}\n'.format(memoryOffset, filename, offset, size).encode())
 		else:
-			header.write('filepartload {} {} {} {}\n'.format(dramBufAddr, filename, offset, size).encode())
+			header.write('filepartload {} {} {} {}\n'.format(memoryOffset, filename, offset, size).encode())
 
 	def create(name, size):
 		if (useHexValuesPrefix):
@@ -247,41 +247,41 @@ def directive(header, dramBufAddr, useHexValuesPrefix):
 		header.write('mmc erase.p {}\n'.format(name).encode())
 
 
-	def unlzo(name, size):
+	def unlzo(name, size, memoryOffset=dramBufAddr):
 		if (useHexValuesPrefix):
-			header.write('mmc unlzo 0x{} 0x{} {} 1\n'.format(dramBufAddr, size, name).encode())
+			header.write('mmc unlzo 0x{} 0x{} {} 1\n'.format(memoryOffset, size, name).encode())
 		else:
-			header.write('mmc unlzo {} {} {} 1\n'.format(dramBufAddr, size, name).encode())
+			header.write('mmc unlzo {} {} {} 1\n'.format(memoryOffset, size, name).encode())
 
-	def unlzo_cont(name, size):
+	def unlzo_cont(name, size, memoryOffset=dramBufAddr):
 		if (useHexValuesPrefix):
-			header.write('mmc unlzo.cont 0x{} 0x{} {} 1\n'.format(dramBufAddr, size, name).encode())
+			header.write('mmc unlzo.cont 0x{} 0x{} {} 1\n'.format(memoryOffset, size, name).encode())
 		else:
-			header.write('mmc unlzo.cont {} {} {} 1\n'.format(dramBufAddr, size, name).encode())
+			header.write('mmc unlzo.cont {} {} {} 1\n'.format(memoryOffset, size, name).encode())
 
-	def write_p(name, size):
+	def write_p(name, size, memoryOffset=dramBufAddr):
 		if (useHexValuesPrefix):
-			header.write('mmc write.p 0x{} {} 0x{} 1\n'.format(dramBufAddr, name, size).encode())
+			header.write('mmc write.p 0x{} {} 0x{} 1\n'.format(memoryOffset, name, size).encode())
 		else:
-			header.write('mmc write.p {} {} {} 1\n'.format(dramBufAddr, name, size).encode())
+			header.write('mmc write.p {} {} {} 1\n'.format(memoryOffset, name, size).encode())
 
-	def store_secure_info(name):
+	def store_secure_info(name, memoryOffset=dramBufAddr):
 		if (useHexValuesPrefix):
-			header.write('store_secure_info {} 0x{}\n'.format(name, dramBufAddr).encode())
+			header.write('store_secure_info {} 0x{}\n'.format(name, memoryOffset).encode())
 		else:
-			header.write('store_secure_info {} {}\n'.format(name, dramBufAddr).encode())
+			header.write('store_secure_info {} {}\n'.format(name, memoryOffset).encode())
 
-	def store_nuttx_config(name):
+	def store_nuttx_config(name, memoryOffset=dramBufAddr):
 		if (useHexValuesPrefix):
-			header.write('store_nuttx_config {} 0x{}\n'.format(name, dramBufAddr).encode())
+			header.write('store_nuttx_config {} 0x{}\n'.format(name, memoryOffset).encode())
 		else:
-			header.write('store_nuttx_config {} {}\n'.format(name, dramBufAddr).encode())
+			header.write('store_nuttx_config {} {}\n'.format(name, memoryOffset).encode())
 
-	def write_boot(size):
+	def write_boot(size, memoryOffset=dramBufAddr):
 		if (useHexValuesPrefix):
-			header.write('mmc write.boot 1 0x{} 0 0x{}\n'.format(dramBufAddr, size).encode())
+			header.write('mmc write.boot 1 0x{} 0 0x{}\n'.format(memoryOffset, size).encode())
 		else:
-			header.write('mmc write.boot 1 {} 0 {}\n'.format(dramBufAddr, size).encode())
+			header.write('mmc write.boot 1 {} 0 {}\n'.format(memoryOffset, size).encode())
 
 	#####
 

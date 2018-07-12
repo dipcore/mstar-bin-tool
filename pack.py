@@ -72,12 +72,9 @@ header = config['HeaderScript'];
 headerScriptPrefix = config.get('HeaderScript', 'Prefix', raw = True)
 headerScriptSuffix = config.get('HeaderScript', 'Suffix', raw = True)
 
-# Parts
-#parts = filter(lambda value: "part/" not in value, config.sections())
-parts = list(filter(lambda s: s.startswith('part/'), config.sections()))
-#parts = list(map(lambda x: x.replace('part/', ''), parts))
 
-print (parts)
+# Parts
+parts = list(filter(lambda s: s.startswith('part/'), config.sections()))
 
 print("\n")
 print ("[i] Date: {}".format(time.strftime("%d/%m/%Y %H:%M:%S")))
@@ -124,6 +121,7 @@ with open(headerPart, 'wb') as header:
 		imageFile = utils.getConfigValue(part, 'imageFile', 'NOT_SET')
 		chunkSize = utils.sizeInt(utils.getConfigValue(part, 'chunkSize', '0'))
 		lzo = utils.str2bool(utils.getConfigValue(part, 'lzo', ''))
+		memoryOffset = utils.getConfigValue(part, 'memoryOffset', 'NOT_SET')
 
 		print("\n")
 		print("[i] Processing partition")
@@ -134,6 +132,7 @@ with open(headerPart, 'wb') as header:
 		print("[i]      Type: {}".format(type))
 		print("[i]      Image: {}".format(imageFile))
 		print("[i]      LZO: {}".format(lzo))
+		print("[i]      memoryOffset: {}".format(memoryOffset))
 
 		header.write('\n'.encode())
 		header.write('# {}\n'.format(name).encode())
@@ -240,7 +239,23 @@ with open(headerPart, 'wb') as header:
 			utils.appendFile(outputChunk, binPart)
 			directive.write_boot(size)
 			
-
+		if (type == 'inMemory'):
+		
+			chunks = utils.splitFile(imageFile, tmpDir, chunksize = 0)
+			outputChunk = chunks[0]
+			
+			size = "{:02X}".format(os.path.getsize(outputChunk))
+			offset = "{:02X}".format(os.path.getsize(binPart) + HEADER_SIZE)
+			directive.filepartload(SCRIPT_FIRMWARE_FILE_NAME, offset, size, memoryOffset=memoryOffset)
+			
+			print ('[i]     Align')
+			utils.alignFile(outputChunk)
+			
+			print ('[i]     Append: {} -> {}'.format(outputChunk, binPart))
+			utils.appendFile(outputChunk, binPart)
+		
+		
+			
 	header.write('\n'.encode())
 	header.write('# Header suffix'.encode())
 	header.write(headerScriptSuffix.encode())
