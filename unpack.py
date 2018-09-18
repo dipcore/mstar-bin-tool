@@ -12,6 +12,7 @@ HEADER_SIZE = 16 * utils.KB # Header size is always 16KB
 headerScript = ""
 headerScriptFound = False
 counter = {}
+env = {} # Environment variables, set by setenv command
 
 # Parse args
 if len(sys.argv) == 1: 
@@ -63,22 +64,36 @@ for line in headerScript.splitlines():
 	if DEBUG:
 		print (line)
 
+	if re.match("^setenv", line):
+		params = utils.processSetEnv(line)
+		key = params["key"]		
+		if not "value" in params:
+			del env[key]
+		else:
+			value = params["value"]
+			env[key] = value
+			print ("[i] Parsing setenv {} -> {}".format(key, value))
+
 	if re.match("^filepartload", line):
+		line = utils.applyEnv(line, env)
 		params = utils.processFilePartLoad(line)
 		offset =  params["offset"]
 		size =  params["size"]
 
-	if re.match("^store_secure_info", line):		
-	 	params = utils.processStoreSecureInfo(line)
-	 	outputFile = os.path.join(outputDirectory, params["partition_name"])
-	 	utils.copyPart(inputFile, outputFile, int(offset, 16), int(size, 16))
+	if re.match("^store_secure_info", line):
+		line = utils.applyEnv(line, env)		
+		params = utils.processStoreSecureInfo(line)
+		outputFile = os.path.join(outputDirectory, params["partition_name"])
+		utils.copyPart(inputFile, outputFile, int(offset, 16), int(size, 16))
 
 	if re.match("^store_nuttx_config", line):
-	 	params = utils.processStoreNuttxConfig(line)
-	 	outputFile = os.path.join(outputDirectory, params["partition_name"])
-	 	utils.copyPart(inputFile, outputFile, int(offset, 16), int(size, 16))
+		line = utils.applyEnv(line, env)
+		params = utils.processStoreNuttxConfig(line)
+		outputFile = os.path.join(outputDirectory, params["partition_name"])
+		utils.copyPart(inputFile, outputFile, int(offset, 16), int(size, 16))
 
 	if re.match("^mmc", line):
+		line = utils.applyEnv(line, env)
 		params = utils.processMmc(line)
 
 		if params:

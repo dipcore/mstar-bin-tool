@@ -140,6 +140,26 @@ def crc32(file):
     buf = (binascii.crc32(buf) & 0xFFFFFFFF)
     return buf
 
+# Apply env variable to line, i.e.
+# setenv imageSize 0x13800
+# setenv imageOffset 0x4000
+# filepartload 0x20200000 LetvUpgrade938.bin $(imageOffset) $(imageSize)
+# So we replace it to filepartload 0x20200000 LetvUpgrade938.bin 0x4000 0x13800
+def applyEnv(line, env):
+	keys = re.findall('\$\((\w+)\)', line)
+	for key in keys:
+		if env[key]:
+			line = line.replace("$({})".format(key), env[key])
+	return line
+
+def processSetEnv(line):
+	args = re.findall('([^\s]+)\s+([^\s]+)\s*(.*)', line)
+	args = args[0]
+	if len(args) == 3:
+		return {'cmd': args[0], 'key': args[1], 'value': args[2]}
+	else:
+		return {'cmd': args[0], 'key': args[1]}
+
 def parceArgs(string):
 	return re.findall('([^\s]+)', string)
 
