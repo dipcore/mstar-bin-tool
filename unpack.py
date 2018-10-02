@@ -39,7 +39,7 @@ print ("[i] Analizing header ...")
 header = utils.loadPart(inputFile, 0, HEADER_SIZE)
 utils.copyPart(inputFile, os.path.join(outputDirectory, "~header"), 0, HEADER_SIZE)
 
-offset = header.find(b'%')
+offset = header.find('\xff'.encode(encoding='iso-8859-1'))
 if offset != -1:
 	headerScript = header[:offset].decode()
 	headerScriptFound = True
