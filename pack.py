@@ -122,6 +122,7 @@ with open(headerPart, 'wb') as header:
 		chunkSize = utils.sizeInt(utils.getConfigValue(part, 'chunkSize', '0'))
 		lzo = utils.str2bool(utils.getConfigValue(part, 'lzo', ''))
 		memoryOffset = utils.getConfigValue(part, 'memoryOffset', 'NOT_SET')
+		emptySkip = utils.str2bool(utils.getConfigValue(part, 'emptySkip', 'True'))
 
 		print("\n")
 		print("[i] Processing partition")
@@ -132,7 +133,10 @@ with open(headerPart, 'wb') as header:
 		print("[i]      Type: {}".format(type))
 		print("[i]      Image: {}".format(imageFile))
 		print("[i]      LZO: {}".format(lzo))
-		print("[i]      memoryOffset: {}".format(memoryOffset))
+		print("[i]      Memory Offset: {}".format(memoryOffset))
+		print("[i]      Empty Skip: {}".format(emptySkip))
+
+		emptySkip = utils.bool2int(emptySkip) # 0 - False, 1 - True
 
 		header.write('\n'.encode())
 		header.write('# {}\n'.format(name).encode())
@@ -175,12 +179,12 @@ with open(headerPart, 'wb') as header:
 
 				if lzo:
 					if index == 0:
-						directive.unlzo(name, size)
+						directive.unlzo(name, size, DRAM_BUF_ADDR, emptySkip)
 					else:
-						directive.unlzo_cont(name, size)
+						directive.unlzo_cont(name, size, DRAM_BUF_ADDR, emptySkip)
 				else:
 					if len(chunks) == 1:
-						directive.write_p(name, size)
+						directive.write_p(name, size, DRAM_BUF_ADDR, emptySkip)
 					else:
 						# filepartload 50000000 MstarUpgrade.bin e04000 c800000
 						# mmc write.p.continue 50000000 system 0 c800000 1
@@ -237,7 +241,7 @@ with open(headerPart, 'wb') as header:
 
 			print ('[i]     Append: {} -> {}'.format(outputChunk, binPart))
 			utils.appendFile(outputChunk, binPart)
-			directive.write_boot(size)
+			directive.write_boot(size, DRAM_BUF_ADDR, emptySkip)
 			
 		if (type == 'inMemory'):
 		

@@ -29,7 +29,10 @@ def sizeStr(s):
 	return '%s %s' % (s,size_name[i])
 
 def str2bool(v):
-  return v.lower() in ("yes", "true", "True", "1")
+	return v.lower() in ("yes", "true", "True", "1")
+
+def bool2int(v):
+	return  1 if v else 0
 
 def getConfigValue(config, name, defValue):
 	try:
@@ -179,12 +182,17 @@ def processMmc(line):
 	args = parceArgs(line)
 
 	if args[1] == 'create':
-		# mmc erase.p partition_name
+		# mmc create [name] [size]- create/change mmc partition [name]
 		return {'cmd': args[0], 'action': args[1], 'partition_name': args[2], 'size': args[3]}
 
 	if args[1] == 'erase.p':
 		# mmc erase.p partition_name
 		return {'cmd': args[0], 'action': args[1], 'partition_name': args[2]}
+		# TODO Add support:
+		# mmc create.gp part_no size enh_attr ext_attr relwr_attr - create/change eMMC GP partition No.[part_no(0~3)] with size and enhance/extended/reliable_write attribute
+		# mmc create.enhusr start_addr size enha_attr relwr_atrr - create/change eMMC enhance user partition(slc mode) from start_addr with size and enhance/reliable_write attribute
+		# mmc create.complete - complete eMMC gp, enhance user, reliable write partition setting
+
 
 	elif args[1] == 'write.p':
 		# mmc write.p addr partition_name size [empty_skip:0-disable,1-enable]
@@ -267,24 +275,29 @@ def directive(header, dramBufAddr, useHexValuesPrefix):
 	def erase_p(name):
 		header.write('mmc erase.p {}\n'.format(name).encode())
 
-
-	def unlzo(name, size, memoryOffset=dramBufAddr):
+	# mmc unlzo[.continue|.cont] addr size partition_name [empty_skip:0-disable,1-enable]- decompress lzo file and write to mmc partition
+	def unlzo(name, size, memoryOffset=dramBufAddr, emptySkip = 1):
 		if (useHexValuesPrefix):
-			header.write('mmc unlzo 0x{} 0x{} {} 1\n'.format(memoryOffset, size, name).encode())
+			header.write('mmc unlzo 0x{} 0x{} {} {}\n'.format(memoryOffset, size, name, emptySkip).encode())
 		else:
-			header.write('mmc unlzo {} {} {} 1\n'.format(memoryOffset, size, name).encode())
+			header.write('mmc unlzo {} {} {} {}\n'.format(memoryOffset, size, name, emptySkip).encode())
 
-	def unlzo_cont(name, size, memoryOffset=dramBufAddr):
+	# mmc unlzo[.continue|.cont] addr size partition_name [empty_skip:0-disable,1-enable]- decompress lzo file and write to mmc partition
+	def unlzo_cont(name, size, memoryOffset=dramBufAddr, emptySkip = 1):
 		if (useHexValuesPrefix):
-			header.write('mmc unlzo.cont 0x{} 0x{} {} 1\n'.format(memoryOffset, size, name).encode())
+			header.write('mmc unlzo.cont 0x{} 0x{} {} {}\n'.format(memoryOffset, size, name, emptySkip).encode())
 		else:
-			header.write('mmc unlzo.cont {} {} {} 1\n'.format(memoryOffset, size, name).encode())
+			header.write('mmc unlzo.cont {} {} {} {}\n'.format(memoryOffset, size, name, emptySkip).encode())
 
-	def write_p(name, size, memoryOffset=dramBufAddr):
+	# mmc write.p addr partition_name size [empty_skip:0-disable,1-enable]
+	def write_p(name, size, memoryOffset=dramBufAddr, emptySkip = 1):
 		if (useHexValuesPrefix):
-			header.write('mmc write.p 0x{} {} 0x{} 1\n'.format(memoryOffset, name, size).encode())
+			header.write('mmc write.p 0x{} {} 0x{} {}\n'.format(memoryOffset, name, size, emptySkip).encode())
 		else:
-			header.write('mmc write.p {} {} {} 1\n'.format(memoryOffset, name, size).encode())
+			header.write('mmc write.p {} {} {} {}\n'.format(memoryOffset, name, size, emptySkip).encode())
+
+	# TODO Add support 
+	# mmc write.p(.continue|.cont) addr partition_name offset size [empty_skip:0-disable,1-enable]
 
 	def store_secure_info(name, memoryOffset=dramBufAddr):
 		if (useHexValuesPrefix):
@@ -298,11 +311,12 @@ def directive(header, dramBufAddr, useHexValuesPrefix):
 		else:
 			header.write('store_nuttx_config {} {}\n'.format(name, memoryOffset).encode())
 
-	def write_boot(size, memoryOffset=dramBufAddr):
+	# mmc write[.boot|.gp] [bootpart|gppart] addr blk# size [empty_skip:0-disable,1-enable]
+	def write_boot(size, memoryOffset=dramBufAddr, emptySkip = 0):
 		if (useHexValuesPrefix):
-			header.write('mmc write.boot 1 0x{} 0 0x{}\n'.format(memoryOffset, size).encode())
+			header.write('mmc write.boot 1 0x{} 0 0x{} {}\n'.format(memoryOffset, size, emptySkip).encode())
 		else:
-			header.write('mmc write.boot 1 {} 0 {}\n'.format(memoryOffset, size).encode())
+			header.write('mmc write.boot 1 {} 0 {} {}\n'.format(memoryOffset, size, emptySkip).encode())
 
 	#####
 
