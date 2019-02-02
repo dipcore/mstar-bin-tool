@@ -144,8 +144,8 @@ with open(headerPart, 'wb') as header:
 		if (create):
 			directive.create(name, size)
 
-		if (erase):
-			directive.erase_p(name)
+		# if (erase):
+		# 	directive.erase_p(name)
 
 		if (type == 'partitionImage'):
 			
@@ -171,6 +171,9 @@ with open(headerPart, 'wb') as header:
 				offset = "{:02X}".format(os.path.getsize(binPart) + HEADER_SIZE)
 
 				directive.filepartload(SCRIPT_FIRMWARE_FILE_NAME, offset, size)
+				if (index == 0 and erase): 
+					directive.erase_p(name) 
+
 				print ('[i]     Align chunk')
 				utils.alignFile(outputChunk)
 
