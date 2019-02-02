@@ -144,8 +144,8 @@ with open(headerPart, 'wb') as header:
 		if (create):
 			directive.create(name, size)
 
-		# if (erase):
-		# 	directive.erase_p(name)
+		if (erase and imageFile == 'NOT_SET'):
+			directive.erase_p(name)
 
 		if (type == 'partitionImage'):
 			
