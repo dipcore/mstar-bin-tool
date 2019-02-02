@@ -257,11 +257,12 @@ def directive(header, dramBufAddr, useHexValuesPrefix):
 		else:
 			header.write('filepartload {} {} {} {}\n'.format(memoryOffset, filename, offset, size).encode())
 
+	# Create directive always uses 0x format
 	def create(name, size):
-		if (useHexValuesPrefix):
-			header.write('mmc create {} 0x{}\n'.format(name, size).encode())
-		else:
-			header.write('mmc create {} {}\n'.format(name, size).encode())
+		#if (useHexValuesPrefix):
+		header.write('mmc create {} 0x{}\n'.format(name, size).encode())
+		#else:
+		#	header.write('mmc create {} {}\n'.format(name, size).encode())
 
 	def erase_p(name):
 		header.write('mmc erase.p {}\n'.format(name).encode())
