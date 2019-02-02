@@ -148,7 +148,7 @@ def crc32(file):
 def applyEnv(line, env):
 	keys = re.findall('\$\((\w+)\)', line)
 	for key in keys:
-		if env[key]:
+		if key in env and env[key]:
 			line = line.replace("$({})".format(key), env[key])
 	return line
 
