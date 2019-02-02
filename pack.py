@@ -330,5 +330,5 @@ else:
 	utils.appendFile(binPart, firmwareFileName)
 	utils.appendFile(footerPart, firmwareFileName)
 
-#shutil.rmtree(tmpDir)
+shutil.rmtree(tmpDir)
 print ('[i] Done')
