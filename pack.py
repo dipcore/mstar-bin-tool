@@ -27,7 +27,10 @@
 
 '''
 	Footer structure
-	|MAGIC|SWAPPED HEADER CRC32|SWAPPED BIN CRC32|FIRST 16 BYTES OF HEADER|
+	|MAGIC|CRC1: SWAPPED HEADER CRC32|CRC2: SWAPPED BIN CRC32|FIRST 16 BYTES OF HEADER|
+
+	# NB XGIMI uses HEADER+BIN+MAGIC+HEADER_CRC to calculate crc2
+	# Use USE_XGIMI_CRC2=True option to enable "XGIMI" mode
 '''
 
 import configparser
@@ -66,6 +69,9 @@ SCRIPT_FIRMWARE_FILE_NAME = main['SCRIPT_FIRMWARE_FILE_NAME']
 DRAM_BUF_ADDR = main['DRAM_BUF_ADDR']
 MAGIC_FOOTER = main['MAGIC_FOOTER']
 HEADER_SIZE = utils.sizeInt(main['HEADER_SIZE'])
+
+# XGIMI uses HEADER+BIN+MAGIC+HEADER_CRC to calculate crc2
+USE_XGIMI_CRC2 = utils.str2bool(main['USE_XGIMI_CRC2'])
 
 # Header
 header = config['HeaderScript'];
@@ -275,24 +281,54 @@ with open(headerPart, 'wb') as header:
 	header.write( ('\xff' * (HEADER_SIZE - os.path.getsize(headerPart))).encode(encoding='iso-8859-1') ) 
 
 print ('[i] Generating footer ...')
-headerCRC = utils.crc32(headerPart)
-binCRC = utils.crc32(binPart)
-header16bytes = utils.loadPart(headerPart, 0, 16)
-with open(footerPart, 'wb') as footer:
-	print ('[i]     Magic: {}'.format(MAGIC_FOOTER))
-	footer.write(MAGIC_FOOTER.encode())
-	print ('[i]     Header CRC: 0x{:02X}'.format(headerCRC))
-	footer.write(struct.pack('L', headerCRC)) # struct.pack('L', data) <- returns byte swapped data
-	print ('[i]     Bin CRC: 0x{:02X}'.format(binCRC))
-	footer.write(struct.pack('L', binCRC))
-	print ('[i]     First 16 bytes of header: {}'.format(header16bytes))
-	footer.write(header16bytes)
 
-print ('[i] Merging header, bin, footer ...')
-open(firmwareFileName, 'w').close()
-utils.appendFile(headerPart, firmwareFileName)
-utils.appendFile(binPart, firmwareFileName)
-utils.appendFile(footerPart, firmwareFileName)
+if (USE_XGIMI_CRC2):
+	# NB XGIMI uses HEADER+BIN+MAGIC+HEADER_CRC to calculate crc2
+	headerCRC = utils.crc32(headerPart)
+	header16bytes = utils.loadPart(headerPart, 0, 16)
 
-shutil.rmtree(tmpDir)
+	# Step #1. Merge HEADER+BIN+MAGIC+HEADER_CRC to one file
+	mergedPart = os.path.join(tmpDir, '~merged')
+	open(mergedPart, 'w').close()
+	utils.appendFile(headerPart, mergedPart)
+	utils.appendFile(binPart, mergedPart)
+	with open(mergedPart, 'ab') as part:
+		print ('[i]     Magic: {}'.format(MAGIC_FOOTER))
+		part.write(MAGIC_FOOTER.encode())
+		print ('[i]     Header CRC: 0x{:02X}'.format(headerCRC))
+		part.write(struct.pack('L', headerCRC))
+	
+	# Step #2 Calculate CRC2
+	mergedCRC = utils.crc32(mergedPart)
+	with open(footerPart, 'wb') as footer:
+		print ('[i]     Merged CRC: 0x{:02X}'.format(mergedCRC))
+		footer.write(struct.pack('L', mergedCRC))
+		print ('[i]     First 16 bytes of header: {}'.format(header16bytes))
+		footer.write(header16bytes)
+
+	print ('[i] Merging parts ...')
+	open(firmwareFileName, 'w').close()
+	utils.appendFile(mergedPart, firmwareFileName)
+	utils.appendFile(footerPart, firmwareFileName)
+else:
+	headerCRC = utils.crc32(headerPart)
+	binCRC = utils.crc32(binPart)
+	header16bytes = utils.loadPart(headerPart, 0, 16)
+	with open(footerPart, 'wb') as footer:
+		print ('[i]     Magic: {}'.format(MAGIC_FOOTER))
+		footer.write(MAGIC_FOOTER.encode())
+		print ('[i]     Header CRC: 0x{:02X}'.format(headerCRC))
+		footer.write(struct.pack('L', headerCRC)) # struct.pack('L', data) <- returns byte swapped data
+		print ('[i]     Bin CRC: 0x{:02X}'.format(binCRC))
+		footer.write(struct.pack('L', binCRC))
+		print ('[i]     First 16 bytes of header: {}'.format(header16bytes))
+		footer.write(header16bytes)
+
+	print ('[i] Merging header, bin, footer ...')
+	open(firmwareFileName, 'w').close()
+	utils.appendFile(headerPart, firmwareFileName)
+	utils.appendFile(binPart, firmwareFileName)
+	utils.appendFile(footerPart, firmwareFileName)
+
+#shutil.rmtree(tmpDir)
 print ('[i] Done')
