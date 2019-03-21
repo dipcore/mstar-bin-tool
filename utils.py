@@ -127,13 +127,13 @@ def alignFile(file, base = 0x1000):
 # unlzo
 # if NT then use ./bin/lzo.exe
 def unlzo(src, dest):
-	lzop = 'bin\\win32\\lzop.exe' if os.name == 'nt' else 'bin/linux-x86/lzop'
+	lzop = 'bin\\win32\\lzop.exe' if os.name == 'nt' else 'lzop'
 	os.system(lzop + ' -o {} -d {}'.format(dest, src))
 
 # lzo
 # if NT then use ./bin/lzo.exe
 def lzo(src, dest):
-	lzop = 'bin\\win32\\lzop.exe' if os.name == 'nt' else 'bin/linux-x86/lzop'
+	lzop = 'bin\\win32\\lzop.exe' if os.name == 'nt' else 'lzop'
 	os.system(lzop + ' -o {} -1 {}'.format(dest, src))
 
 # Calculate crc32
