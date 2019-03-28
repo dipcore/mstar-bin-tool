@@ -71,7 +71,10 @@ MAGIC_FOOTER = main['MAGIC_FOOTER']
 HEADER_SIZE = utils.sizeInt(main['HEADER_SIZE'])
 
 # XGIMI uses HEADER+BIN+MAGIC+HEADER_CRC to calculate crc2
-USE_XGIMI_CRC2 = utils.str2bool(main['USE_XGIMI_CRC2'])
+if 'USE_XGIMI_CRC2' in main:
+	USE_XGIMI_CRC2 = utils.str2bool(main['USE_XGIMI_CRC2'])
+else:
+	USE_XGIMI_CRC2 = False
 
 # Header
 header = config['HeaderScript'];
