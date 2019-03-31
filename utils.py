@@ -136,6 +136,12 @@ def lzo(src, dest):
 	lzop = 'bin\\win32\\lzop.exe' if os.name == 'nt' else 'lzop'
 	os.system(lzop + ' -o {} -1 {}'.format(dest, src))
 
+# img
+# if NT then use ./bin/7z.exe
+def unpackImg(src, outdir):
+	z7 = 'bin\\win32\\7z.exe' if os.name == 'nt' else '7z'
+	os.system(z7 + ' x -y -o{} {} '.format(outdir, src))
+
 # Calculate crc32
 # file - filename of a file to calculate
 def crc32(file):

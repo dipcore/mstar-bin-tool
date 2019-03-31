@@ -24,7 +24,7 @@ if len(sys.argv) == 3:
 else:
 	outputDirectory = 'unpacked'
 
-#subprocess.run("unpack.py {} {}".format(inputFile, outputDirectory), shell=True)
+subprocess.run("unpack.py {} {}".format(inputFile, outputDirectory), shell=True)
 
 if not os.path.exists(outputDirectory):
 	print ("No such folder: {}".format(outputDirectory))
