@@ -58,6 +58,7 @@ with open(os.path.join(outputDirectory, "~header_script"), "w") as f:
 
 # Parse script
 print ("[i] Parsing script ...")
+sparseList = list()
 # Supporting filepartload, mmc, store_secure_info, store_nuttx_config
 for line in headerScript.splitlines():
 
@@ -90,6 +91,15 @@ for line in headerScript.splitlines():
 		line = utils.applyEnv(line, env)
 		params = utils.processStoreNuttxConfig(line)
 		outputFile = os.path.join(outputDirectory, params["partition_name"])
+		utils.copyPart(inputFile, outputFile, int(offset, 16), int(size, 16))
+		
+	if re.match("^sparse_write", line):
+		line = utils.applyEnv(line, env)
+		params = utils.processSparseWrite(line)
+		outputFile = utils.generateFileNameSparse(outputDirectory, params)
+		print ("[i] Partition: {}\tOffset: {}\tSize {} ({}) -> {}".format(params["partition_name"], offset, size, utils.sizeStr(int(size, 16)), outputFile))
+		if not params["partition_name"] in sparseList:
+			sparseList.append(params["partition_name"])		
 		utils.copyPart(inputFile, outputFile, int(offset, 16), int(size, 16))
 
 	if re.match("^mmc", line):
@@ -148,7 +158,12 @@ for line in headerScript.splitlines():
 				# delete chunk
 				os.remove(outputChunkLzoFile)
 				os.remove(outputChunkImgFile)
-
-
-
+for partName in sparseList:
+	print ("[i] Sparse: converting {}_sparse.* to {}.img".format(partName, partName))
+	sparseFiles = os.path.join(outputDirectory, partName + '_sparse.*')
+	sparseFilesConv = utils.convertInputSparseName(sparseFiles)
+	outputImgFile = os.path.join(outputDirectory, partName + ".img")
+	utils.sparse_to_img(sparseFilesConv, outputImgFile)
+	os.system('del ' + sparseFiles)
+print ("[i] Done.")
 
