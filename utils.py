@@ -76,7 +76,7 @@ def splitFile(file, destdir, chunksize):
 
 	assert len(chunks) <= 9999			
 	return chunks
-	
+
 def sparse_split(file, destdir, chunksize):
 	(name, ext) = os.path.splitext(os.path.basename(file))
 	chunks = []
@@ -88,7 +88,8 @@ def sparse_split(file, destdir, chunksize):
 	# Split to chunks
 	src = os.path.join(destdir, name + ext)
 	dest = os.path.join(destdir, name + "_sparse")
-	os.system('bin\\sparse\\simg2simg.exe' + ' {} {} {}'.format(src, dest, chunksize))
+	simg2simg = 'bin\\sparse\\simg2simg.exe' if os.name == 'nt' else 'bin/linux-x86/simg2simg'
+	os.system(simg2simg + ' {} {} {}'.format(src, dest, chunksize))
 	namesList = list(filter(lambda s: s.startswith(name + '_sparse'), os.listdir(destdir)))
 	for name in namesList:
 		chunks.append(os.path.join(destdir, name))
@@ -155,10 +156,12 @@ def lzo(src, dest):
 	os.system(lzop + ' -o {} -1 {}'.format(dest, src))
 	
 def sparse_to_img (src, dest):
-	os.system('bin\\sparse\\simg2img.exe' + ' {} {}'.format(src, dest))
+	simg2img = 'bin\\sparse\\simg2img.exe' if os.name == 'nt' else 'bin/linux-x86/simg2img'
+	os.system(simg2img + ' {} {}'.format(src, dest))
 	
 def img_to_sparse (src, dest):
-	os.system('bin\\sparse\\img2simg.exe' + ' {} {}'.format(src, dest))
+	img2simg = 'bin\\sparse\\img2simg.exe' if os.name == 'nt' else 'bin/linux-x86/img2simg'
+	os.system(img2simg + ' {} {}'.format(src, dest))
 
 # Calculate crc32
 # file - filename of a file to calculate
@@ -295,9 +298,9 @@ def generateFileNameSparse(outputDirectory, part):
 			fileExtCounter[part['partition_name']] = 1
 		fileName = os.path.join(outputDirectory, part['partition_name'] + '_sparse.' + str(fileExtCounter[part['partition_name']]))
 	return fileName
-	
+
 def convertInputSparseName(filename):
-	filename = filename.replace("\\", "/");
+	filename = filename.replace("\\", "/") if os.name == 'nt' else filename.replace("\\", "\\")
 	return filename
 
 def directive(header, dramBufAddr, useHexValuesPrefix):

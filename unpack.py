@@ -82,7 +82,7 @@ for line in headerScript.splitlines():
 		size =  params["size"]
 
 	if re.match("^store_secure_info", line):
-		line = utils.applyEnv(line, env)		
+		line = utils.applyEnv(line, env)
 		params = utils.processStoreSecureInfo(line)
 		outputFile = os.path.join(outputDirectory, params["partition_name"])
 		utils.copyPart(inputFile, outputFile, int(offset, 16), int(size, 16))
@@ -164,6 +164,7 @@ for partName in sparseList:
 	sparseFilesConv = utils.convertInputSparseName(sparseFiles)
 	outputImgFile = os.path.join(outputDirectory, partName + ".img")
 	utils.sparse_to_img(sparseFilesConv, outputImgFile)
-	os.system('del ' + sparseFiles)
+	delete = 'del ' if os.name == 'nt' else 'rm '
+	os.system(delete + sparseFiles)
 print ("[i] Done.")
 
