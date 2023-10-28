@@ -43,7 +43,7 @@ utils.copyPart(inputFile, os.path.join(outputDirectory, "~header"), 0, HEADER_SI
 
 offset = header.find('\xff'.encode(encoding='iso-8859-1'))
 if offset != -1:
-	headerScript = header[:offset].decode()
+	headerScript = header[:offset].decode( 'iso-8859-1' )
 	headerScriptFound = True
 
 if not headerScriptFound:
@@ -55,7 +55,7 @@ if DEBUG:
 
 # Save the script
 print ("[i] Saving header script to " + os.path.join(outputDirectory, "~header_script.sh") + " ...")
-with open(os.path.join(outputDirectory, "~header_script.sh"), "w") as f:
+with open(os.path.join(outputDirectory, "~header_script.sh"), "w", encoding='iso-8859-1') as f:
 	f.write(headerScript)
 
 # Parse script
