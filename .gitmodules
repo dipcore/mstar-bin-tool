@@ -1,0 +1,3 @@
+[submodule "src/android-simg2img"]
+	path = src/android-simg2img
+	url = https://github.com/anestisb/android-simg2img
