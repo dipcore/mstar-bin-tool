@@ -8,6 +8,8 @@ import utils
 DEBUG = False
 HEADER_SIZE = 16 * utils.KB # Header size is always 16KB
 
+print ("mstar-bin-tool unpack.py v.1.2_sha-man")
+
 # Vars
 headerScript = ""
 headerScriptFound = False
@@ -52,8 +54,8 @@ if DEBUG:
 	print (headerScript)
 
 # Save the script
-print ("[i] Saving header script to " + os.path.join(outputDirectory, "~header_script") + " ...")
-with open(os.path.join(outputDirectory, "~header_script"), "w") as f:
+print ("[i] Saving header script to " + os.path.join(outputDirectory, "~header_script.sh") + " ...")
+with open(os.path.join(outputDirectory, "~header_script.sh"), "w") as f:
 	f.write(headerScript)
 
 # Parse script
@@ -92,6 +94,13 @@ for line in headerScript.splitlines():
 		params = utils.processStoreNuttxConfig(line)
 		outputFile = os.path.join(outputDirectory, params["partition_name"])
 		utils.copyPart(inputFile, outputFile, int(offset, 16), int(size, 16))
+        
+	if re.match("^multi2optee", line):
+		line = utils.applyEnv(line, env)
+		params = utils.processMulti2optee(line)
+		outputFile = os.path.join(outputDirectory, params["partition_name"] + ".bin")
+		utils.copyPart(inputFile, outputFile, int(offset, 16), int(size, 16))
+		print ("[i] Partition: {}\tOffset: {}\tSize {} ({}) -> {}".format(params["partition_name"], offset, size, utils.sizeStr(int(size, 16)), outputFile))
 		
 	if re.match("^sparse_write", line):
 		line = utils.applyEnv(line, env)

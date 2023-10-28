@@ -208,6 +208,10 @@ def processStoreNuttxConfig(line):
 def processSparseWrite(line):
 	args = parceArgs(line)
 	return {'cmd': args[0], 'action': args[1], 'addr': args[2], 'partition_name': args[3], 'size': args[4]}
+    
+def processMulti2optee(line):
+	args = parceArgs(line)
+	return {'cmd': args[0], 'addr': args[1], 'partition_name': args[2], 'size': args[3]}
 
 def processMmc(line):
 	args = parceArgs(line)
@@ -371,6 +375,12 @@ def directive(header, dramBufAddr, useHexValuesPrefix):
 		else:
 			header.write('sparse_write mmc {} {} $(filesize)\n'.format(memoryOffset, name).encode())
 			
+	def write_multi2optee(name, memoryOffset=dramBufAddr):
+		if (useHexValuesPrefix):
+			header.write('multi2optee 0x{} {} $(filesize)\n'.format(memoryOffset, name).encode())
+		else:
+			header.write('multi2optee {} {} $(filesize)\n'.format(memoryOffset, name).encode())
+						
 	directive.filepartload = filepartload	
 	directive.create = create	
 	directive.erase_p = erase_p	
@@ -379,8 +389,9 @@ def directive(header, dramBufAddr, useHexValuesPrefix):
 	directive.write_p = write_p	
 	directive.store_secure_info = store_secure_info	
 	directive.store_nuttx_config = store_nuttx_config	
-	directive.write_boot = write_boot	
+	directive.write_boot = write_boot
 	directive.sparse_write = sparse_write
+	directive.write_multi2optee = write_multi2optee
 	return directive
 
 def hexString(v, delimiter = ' '):
