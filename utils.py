@@ -77,6 +77,25 @@ def splitFile(file, destdir, chunksize):
 	assert len(chunks) <= 9999			
 	return chunks
 
+def sparse_split(file, destdir, chunksize):
+	(name, ext) = os.path.splitext(os.path.basename(file))
+	chunks = []
+
+	# Just return file if its size is less than chunk size
+	if os.path.getsize(file) < chunksize or chunksize == 0:
+		return [file]
+		
+	# Split to chunks
+	src = os.path.join(destdir, name + ext)
+	dest = os.path.join(destdir, name + "_sparse")
+	simg2simg = 'bin\\sparse\\simg2simg.exe' if os.name == 'nt' else 'bin/linux-x86/simg2simg'
+	os.system(simg2simg + ' {} {} {}'.format(src, dest, chunksize))
+	namesList = list(filter(lambda s: s.startswith(name + '_sparse'), os.listdir(destdir)))
+	for name in namesList:
+		chunks.append(os.path.join(destdir, name))
+	return chunks
+	
+	
 # Append src file to dest file
 # bufsize - chunk size
 def appendFile(src, dest, bufsize = 16 * MB):
@@ -127,14 +146,28 @@ def alignFile(file, base = 0x1000):
 # unlzo
 # if NT then use ./bin/lzo.exe
 def unlzo(src, dest):
-	lzop = 'bin\\win32\\lzop.exe' if os.name == 'nt' else 'bin/linux-x86/lzop'
+	lzop = 'bin\\win32\\lzop.exe' if os.name == 'nt' else 'lzop'
 	os.system(lzop + ' -o {} -d {}'.format(dest, src))
 
 # lzo
 # if NT then use ./bin/lzo.exe
 def lzo(src, dest):
-	lzop = 'bin\\win32\\lzop.exe' if os.name == 'nt' else 'bin/linux-x86/lzop'
+	lzop = 'bin\\win32\\lzop.exe' if os.name == 'nt' else 'lzop'
 	os.system(lzop + ' -o {} -1 {}'.format(dest, src))
+	
+def sparse_to_img (src, dest):
+	simg2img = 'bin\\sparse\\simg2img.exe' if os.name == 'nt' else 'bin/linux-x86/simg2img'
+	os.system(simg2img + ' {} {}'.format(src, dest))
+	
+def img_to_sparse (src, dest):
+	img2simg = 'bin\\sparse\\img2simg.exe' if os.name == 'nt' else 'bin/linux-x86/img2simg'
+	os.system(img2simg + ' {} {}'.format(src, dest))
+
+# img
+# if NT then use ./bin/7z.exe
+def unpackImg(src, outdir):
+	z7 = 'bin\\win32\\7z.exe' if os.name == 'nt' else '7z'
+	os.system(z7 + ' x -y -o{} {} '.format(outdir, src))
 
 # Calculate crc32
 # file - filename of a file to calculate
@@ -177,6 +210,14 @@ def processStoreSecureInfo(line):
 def processStoreNuttxConfig(line):
 	args = parceArgs(line)
 	return {'cmd': args[0], 'partition_name': args[1], 'addr': args[2]}
+	
+def processSparseWrite(line):
+	args = parceArgs(line)
+	return {'cmd': args[0], 'action': args[1], 'addr': args[2], 'partition_name': args[3], 'size': args[4]}
+    
+def processMulti2optee(line):
+	args = parceArgs(line)
+	return {'cmd': args[0], 'addr': args[1], 'partition_name': args[2], 'size': args[3]}
 
 def processMmc(line):
 	args = parceArgs(line)
@@ -256,6 +297,21 @@ def generateFileName(outputDirectory, part, ext):
 			fileNameCounter[part['partition_name']] = 1
 		fileName = os.path.join(outputDirectory, part['partition_name'] + str(fileNameCounter[part['partition_name']]) + ext)
 	return fileName
+	
+fileExtCounter = {}
+def generateFileNameSparse(outputDirectory, part):
+	fileName = os.path.join(outputDirectory, part['partition_name'] + '_sparse.0')
+	if os.path.exists(fileName):
+		try:
+			fileExtCounter[part['partition_name']] += 1
+		except:
+			fileExtCounter[part['partition_name']] = 1
+		fileName = os.path.join(outputDirectory, part['partition_name'] + '_sparse.' + str(fileExtCounter[part['partition_name']]))
+	return fileName
+
+def convertInputSparseName(filename):
+	filename = filename.replace("\\", "/") if os.name == 'nt' else filename.replace("\\", "\\")
+	return filename
 
 def directive(header, dramBufAddr, useHexValuesPrefix):
 
@@ -319,7 +375,18 @@ def directive(header, dramBufAddr, useHexValuesPrefix):
 			header.write('mmc write.boot 1 {} 0 {} {}\n'.format(memoryOffset, size, emptySkip).encode())
 
 	#####
-
+	def sparse_write(name, memoryOffset=dramBufAddr):
+		if (useHexValuesPrefix):
+			header.write('sparse_write mmc 0x{} {} $(filesize)\n'.format(memoryOffset, name).encode())
+		else:
+			header.write('sparse_write mmc {} {} $(filesize)\n'.format(memoryOffset, name).encode())
+			
+	def write_multi2optee(name, memoryOffset=dramBufAddr):
+		if (useHexValuesPrefix):
+			header.write('multi2optee 0x{} {} $(filesize)\n'.format(memoryOffset, name).encode())
+		else:
+			header.write('multi2optee {} {} $(filesize)\n'.format(memoryOffset, name).encode())
+						
 	directive.filepartload = filepartload	
 	directive.create = create	
 	directive.erase_p = erase_p	
@@ -328,7 +395,9 @@ def directive(header, dramBufAddr, useHexValuesPrefix):
 	directive.write_p = write_p	
 	directive.store_secure_info = store_secure_info	
 	directive.store_nuttx_config = store_nuttx_config	
-	directive.write_boot = write_boot	
+	directive.write_boot = write_boot
+	directive.sparse_write = sparse_write
+	directive.write_multi2optee = write_multi2optee
 	return directive
 
 def hexString(v, delimiter = ' '):

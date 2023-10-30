@@ -1,0 +1,42 @@
+#
+# NOTE! Don't add files that are generated in specific
+# subdirectories here. Add them in the ".gitignore" file
+# in that subdirectory instead.
+#
+# NOTE! Please use 'git ls-files -i --exclude-standard'
+# command after changing this file, to see if there are
+# any tracked files which get ignored after the change.
+#
+# Normal rules
+#
+.*
+*.o
+*.o.*
+*.a
+*.s
+*.bin
+*.tar
+*.gz
+*.bz2
+*.lzma
+*.xz
+*.lz4
+*.lzo
+*.patch
+*.c.[012]*.*
+
+#
+# Unpacked directory
+#
+/unpacked/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+#
+# git files that we don't want to ignore even if they are dot-files
+#
+!.gitignore
+!.mailmap
+!.cocciconfig

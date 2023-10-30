@@ -3,11 +3,36 @@
 Command line tools to pack/unpack MStar bin firmware
 
 Currently available tools:
+ - **extract.py** - unpack MStar bin firmware and extract file from *.img files to directory
+ - **extract.sh** - unpack MStar bin firmware and mount *.img files to directory
  - **unpack.py** - unpack MStar bin firmware
  - **pack.py** - pack MStar bin firmware
  - **extract_keys.py** - extract AES and RSA-public keys from MBOOT binary
  - **secure_partition.py** - encrypt image and generate signature file
 
+
+## unpack MStar bin firmware and extract file from *.img files to directory
+
+```
+Usage: extract.py <firmware> <output folder [default: ./unpacked/]>
+        <firmware> - MStar bin firmware to unpack
+        <output folder> - directory to store unpacked stuff. Default value: ./unpacked/
+```
+
+## Unpack MStar bin firmware files and mount *.img to directory
+
+```
+Usage: extract.sh <firmware> <output folder [default: ./unpacked/]>
+        <firmware> - MStar bin firmware to unpack
+        <output folder> - directory to store unpacked stuff. Default value: ./unpacked/
+```
+
+## Umount directory
+
+```
+Usage: extract.sh umount <output folder [default: ./unpacked/]>
+        <output folder> - directory to store unpacked stuff. Default value: ./unpacked/
+```
 
 ## Unpack MStar bin firmware files
 
